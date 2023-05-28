@@ -17,7 +17,7 @@ kbd_buffer_write_pos:	db 0
 wait_for_key:
         call    is_key_pressed
         or      a
-        jr      z,wait_for_key
+        jr      nz,wait_for_key
         ret
 
 ;===============================================================================

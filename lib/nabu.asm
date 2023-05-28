@@ -118,6 +118,7 @@ isrKeyboard_exit:
 ; CLOBBERS: none
 ;===============================================================================
 isrVdp:
+        di
         push    af
         ld      a,1
         ld      (tms_is_ready),a
@@ -125,7 +126,7 @@ isrVdp:
         ld      (tms_status_reg),a
         pop     af
         ei
-        reti
+        ret
 
 ;===============================================================================
 ; Read a register from the AY-3-8910

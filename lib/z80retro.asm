@@ -4,7 +4,7 @@
 ; OUTPUT: A = 1 when a key is pressed, A = 0 when no key pressed.
 ; CLOBBERS: IY
 ;===============================================================================
-isKeyPressed:
+is_key_pressed:
         in      a,(0x32)        ; read sio control status byte
         and     1               ; check the rcvr ready bit
         ret
@@ -15,7 +15,7 @@ isKeyPressed:
 ; OUTPUT: Ascii value of key in A
 ; CLOBBERS: IY, BC
 ;===============================================================================
-getChar:
+get_char:
         in    a,(0x30)          ; read sio control data byte
         ret
 
@@ -26,7 +26,7 @@ getChar:
 ; OUTPUT: A = 1 when a key is pressed, A = 0 when no key pressed.
 ; CLOBBERS: none
 ;===============================================================================
-getJoyStatus:
+get_joy_status:
         or      a
         jr      z,.getJoy0
 .getJoy1:
@@ -47,9 +47,6 @@ getJoyStatus:
 ; CLOBBERS: AF
 ;===============================================================================
 tms_wait:
-        ; in      a,(io_tmslatch)
-        ; rlca
-        ; jr      nc,tms_wait
         in      a,(joy0)        ; read the /INT status via bodge wire 
         and     0x02            ; check U6, pin 4 (D1)
         jp      nz,tms_wait

@@ -6,6 +6,7 @@ is_nabu:        equ     1
         org     0x100
         ld      sp,.stack
 
+
 if is_nabu = 1
         call    init_nabu
 endif
@@ -25,17 +26,19 @@ main:
         ld      hl,inv_patterns
         call    tms_write_slow
 
+        ld      de,0x0000
+loop:
         ld      a,0x60
-        ld      de,0x1010
         call    set_char_at_loc_buf
-        ld      a,0x61
-        ld      de,0x1110
+        inc     a
+        inc     d
         call    set_char_at_loc_buf
-
         call    tms_flush_buffer
-        
-exit:   
-        call    get_char
+wait:   
+        call    is_key_pressed
+        or      a
+        jr      z,wait
+exit:
         call    cpm_terminate
 
 ; includes
