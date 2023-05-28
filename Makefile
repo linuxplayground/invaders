@@ -7,4 +7,4 @@ all: clean
 	cp c.dsk "/mnt/c/dev/nabu/Nabu Internet Adapter/Store/"
 
 clean:
-	rm -f invaders.com c.dsk invaders.lst invaders.sym
+	rm -f invaders.com c.dsk invaders.lst invaders.sym invaders.lis

@@ -11,13 +11,13 @@ kbd_buffer_write_pos:	db 0
 ;===============================================================================
 ; Blocking wait for keypress
 ; INPUT: void
-; OUTPUT: ascii of pressed key in A
-; CLOBBERS: IY (if on NABU), none on z80retro
+; OUTPUT: A=0 no key press, A=1 key press detected
+; CLOBBERS: HL on Nabu
 ;===============================================================================
-waitForKey:
-        call    isKeyPressed
+wait_for_key:
+        call    is_key_pressed
         or      a
-        jp      z,waitForKey
+        jr      z,wait_for_key
         ret
 
 ;===============================================================================
@@ -52,7 +52,6 @@ puts:
 cpm_terminate:
         jp      0
 
-
 ;===============================================================================
 ; Fills memory with a single value.
 ; INPUT: A = value to fill, HL = start address, BC = count / size
@@ -85,6 +84,8 @@ hexdump_a:
         push	af
         and	0x0f
         call	.hexdump_nib
+        ld      a,':'
+        call    puts
         pop	af
         ret
 

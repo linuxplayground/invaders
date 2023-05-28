@@ -41,6 +41,22 @@ getJoyStatus:
         ret
 
 ;===============================================================================
+; Wait for the VDP VSYNC status to appear on the status register
+; INPUT: void
+; OUTPUT: void
+; CLOBBERS: AF
+;===============================================================================
+tms_wait:
+        ; in      a,(io_tmslatch)
+        ; rlca
+        ; jr      nc,tms_wait
+        in      a,(joy0)        ; read the /INT status via bodge wire 
+        and     0x02            ; check U6, pin 4 (D1)
+        jp      nz,tms_wait
+        in      a,(io_tmslatch) ; read the VDP status register to reset the IRQ
+        ret
+
+;===============================================================================
 ; VARIABLES, ENUMS AND IO PORTS
 ;===============================================================================
 io_tmsdata:             equ 0x80
