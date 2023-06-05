@@ -16,12 +16,12 @@ tms_init_g1:
 
 ;===============================================================================
 ; Set one of the VDP registers
-; INPUT: B = Register to set, D = value to set
+; INPUT: B = Register to set, C = value to set
 ; OUTPUT: void
 ; CLOBBERS: none
 ;===============================================================================
 tms_set_register:
-        ld      a,d
+        ld      a,c
         out     (io_tmslatch),a
         ld      a,b
         or      0x80
@@ -30,12 +30,11 @@ tms_set_register:
 
 ;===============================================================================
 ; Set the backdrop colour.
-; INPUT: B = Colour to set [0-15]
+; INPUT: C = Colour to set [0-15]
 ; OUTPUT: void
 ; CLOBBERS: DE
 ;===============================================================================
 tms_set_backdrop_color:
-        ld      d,b
         ld      b,0x07
         call    tms_set_register
         ret
@@ -121,7 +120,7 @@ tms_write_slow:
 
 ;===============================================================================
 ; Set the whole colour table to a single colour.
-; INPUT: B = Colour to set [0-15]
+; INPUT: C = Colour to set [0-15]
 ; OUTPUT: void
 ; CLOBBERS: HL, DE
 ;===============================================================================
@@ -129,7 +128,7 @@ tms_set_all_colors:
         ld      de,tms_colorTable
         call    tms_set_write_address
 
-        ld      l,b
+        ld      l,c
         ld      de,tms_colorTableLen
         jp      tms_set_vram_loop_start
 
@@ -228,6 +227,9 @@ tms_flush_buffer:
 ; CLOBBERS: BC, DE, HL
 ;===============================================================================
 set_char_at_loc_buf:
+        push    bc
+        push    de
+        push    hl
         ld      c,a             ; save char to write
         ld      l,e             ; y in l
         ld      h,0
@@ -238,6 +240,9 @@ set_char_at_loc_buf:
         add     hl,de           ; add buffer start to hl
         ld      a,c             ; restore char to write
         ld      (hl),a
+        pop     hl
+        pop     de
+        pop     bc
         ret
 
 ;===============================================================================

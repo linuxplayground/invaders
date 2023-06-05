@@ -11,7 +11,13 @@ addhla: macro
         sub     l       ; A = H+carry
         ld      h, a    ; H = H+carry
 endm
-
+adddea: macro
+        add     a, e    ; A = A+E
+        ld      e, a    ; E = A+E
+        adc     a, d    ; A = A+E+D+carry
+        sub     e       ; A = D+carry
+        ld      d, a    ; D = D+carry
+endm
 ;===============================================================================
 ; Multiplication Macros (powers of 2 only.)
 ; INPUT: HL, value to multiply
@@ -76,4 +82,10 @@ fillmem: macro start size value
         ld      hl,start
         ld      bc,size
         call    fillmem
+endm
+
+inc8: macro addr
+        ld      a,(addr)
+        inc     a
+        ld      (addr),a
 endm

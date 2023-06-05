@@ -1,43 +1,44 @@
 ; include macros first.
 is_nabu:        equ     1
-
         include 'macros.asm'
 
         org     0x100
         ld      sp,.stack
 
+ticks:  db 0
 
 if is_nabu = 1
         call    init_nabu
 endif
 
 main:
-        call    tms_clear_vram
-        call    tms_init_g1
-        
-        ld      b,tms_gray<<4|tms_black
-        call    tms_set_all_colors
-        
-        ld      b,tms_dark_yellow
-        call    tms_set_backdrop_color
-        
-        ld      de,tms_patternTable
-        ld      bc,inv_patterns_len
-        ld      hl,inv_patterns
-        call    tms_write_slow
+        call    setup
 
-        ld      de,0x0000
 loop:
-        ld      a,0x60
-        call    set_char_at_loc_buf
-        inc     a
-        inc     d
-        call    set_char_at_loc_buf
+        ld      a,(ticks)
+        cp      0x04
+        jr      nz,vdp_wait
+        ; call    tms_clear_buffer
+        call    draw_alien_grid
         call    tms_flush_buffer
-wait:   
+        ld      a,(alien_drop)
+        or      a
+        jr      z,.reset_ticks
+        call    drop_aliens
+        or      a
+        jp      nz,exit
+.reset_ticks:
+        ; xor     a
+        ld      (ticks),a
+        jp      tick
+vdp_wait:
+        call    tms_wait
+tick:
+        inc8    ticks
+user_input:   
         call    is_key_pressed
         or      a
-        jr      z,wait
+        jr      z,loop
 exit:
         call    cpm_terminate
 
@@ -50,6 +51,8 @@ endif
         include 'tms.asm'
         include 'utils.asm'
         include 'inv_patterns.asm'
+        include 'setup.asm'
+        include 'alien.asm'
 
 ; stack
         ds      1024
