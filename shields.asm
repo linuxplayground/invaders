@@ -1,0 +1,40 @@
+sheilds_array:
+        db      0x01,0x02,0x03
+        db      0x00,0x00,0x00
+        db      0x01,0x02,0x03
+        db      0x00,0x00,0x00
+        db      0x01,0x02,0x03
+        db      0x00,0x00,0x00
+        db      0x01,0x02,0x03
+        db      0x00,0x00,0x00,0x00,0x00,0x00
+
+        db      0x00,0x00,0x00,0x00,0x00
+        db      0x04,0x05,0x06
+        db      0x00,0x00,0x00
+        db      0x04,0x05,0x06
+        db      0x00,0x00,0x00
+        db      0x04,0x05,0x06
+        db      0x00,0x00,0x00
+        db      0x04,0x05,0x06
+shields_array_len:      equ $-sheilds_array
+
+; draw the sheilds into the framebuffer.
+draw_shields:
+        ld      de,tms_buffer
+        ld      l,19
+        ld      h,0
+        mul32
+        add     hl,de           ; row position in tms buffer
+        ex      de,hl
+        ld      a,5
+        adddea
+        ld      b,shields_array_len
+        ld      hl,sheilds_array
+.draw_sheidls_1:
+        ld      a,(hl)
+        ld      (de),a
+        inc     de
+        inc     hl
+        djnz    .draw_sheidls_1
+
+        ret

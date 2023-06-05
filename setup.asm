@@ -19,10 +19,4 @@ setup:
         ld      c,tms_gray<<4|tms_black
         call    tms_set_all_colors
 
-        ld      de,0x0207
-        call    tms_set_write_address
-
-        ; ld      l,0x4e
-        ; ld      de,0x0010
-        ; jp      tms_set_vram_loop_start
         ret

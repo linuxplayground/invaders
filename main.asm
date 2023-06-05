@@ -13,12 +13,12 @@ endif
 
 main:
         call    setup
+        call    draw_shields
 
 loop:
         ld      a,(ticks)
         cp      0x04
         jr      nz,vdp_wait
-        ; call    tms_clear_buffer
         call    draw_alien_grid
         call    tms_flush_buffer
         ld      a,(alien_drop)
@@ -53,6 +53,7 @@ endif
         include 'inv_patterns.asm'
         include 'setup.asm'
         include 'alien.asm'
+        include 'shields.asm'
 
 ; stack
         ds      1024
