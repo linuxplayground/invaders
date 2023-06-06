@@ -19,7 +19,7 @@ main:
 
 loop:
         ld      a,(ticks)
-        cp      0x04
+        cp      0x08
         jr      nz,vdp_wait
         call    draw_alien_grid
         call    tms_flush_buffer

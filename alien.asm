@@ -8,7 +8,11 @@ alien_row:      db 0    ; row counter
 ; move and draw the alien grid
 draw_alien_grid:
         ld      ix,aliens
-        ld      a,5
+        ld      a,(alien_bottom_y)
+        ld      hl,alien_top_y
+        sub     (hl)
+        div2
+        inc     a
         ld      (alien_row),a
 .draw_alien_row:
         ld      d,(ix+2)
@@ -25,7 +29,7 @@ draw_alien_grid:
         add     hl,de           ; row position in tms buffer
         ex      de,hl
         
-        ; decide new posistion
+        ; decide new position
         ld      a,(alien_dir)   ; get the direction
         or      a
         jr      z,.moving_left
@@ -41,7 +45,11 @@ draw_alien_grid:
 .calc_new_tx:
         div4                    ; calculate tx
         ld      (ix+2),a        ; save tx
-
+        ; only check boundaries if the alien we are drawing is not 0.
+        ld      a,(ix+0)
+        or      a
+        jr      z,.not_left_bound       ; skip the boundary check if pattern is 0
+        ld      a,(ix+2)
         cp      0x1e            ; check boundaries
         jr      c,.not_right_bound
         ld      a,0
@@ -59,11 +67,14 @@ draw_alien_grid:
         ld      a,(ix+2)
         adddea
         ld      a,(ix+0)        ; type
+        or      a
+        jr      z,.draw_alien_pattern
         ld      c,a             ; save type
         ld      a,(ix+1)        ; px
         and     0x03            ; px modulus 4 (to get the pattern)
         add     a,a             ; double it to get the starting offset of the
         add     c               ; alien pattern
+.draw_alien_pattern:
         ld      (de),a
         inc     de
         or      a
@@ -102,8 +113,11 @@ draw_alien_grid:
 ; by one row.
 drop_aliens:
         ld      ix,aliens
-
-        ld      a,5
+        ld      a,(alien_bottom_y)
+        ld      hl,alien_top_y
+        sub     (hl)
+        div2
+        inc     a
         ld      (alien_row),a
 .drop_alien_row:
         ld      l,(ix+3)
@@ -120,6 +134,7 @@ drop_aliens:
         ld      a,(ix+3)
         cp      22
         jr      nc,.drop_aliens_3
+        ld      (alien_bottom_y),a
 .drop_aliens_2:
         inc     ix
         inc     ix
@@ -127,6 +142,7 @@ drop_aliens:
         inc     ix
         dec     b
         jr      nz,.drop_aliens_1
+
         ld      a,(alien_row)
         dec     a
         ld      (alien_row),a
@@ -135,9 +151,6 @@ drop_aliens:
         ld      a,(alien_top_y)
         inc     a
         ld      (alien_top_y),a
-        ld      a,(alien_bottom_y)
-        inc     a
-        ld      (alien_bottom_y),a
 
         xor     a               ; return value of 0 means not game over.
         ld      (alien_drop),a ; reset drop_aliens flag
