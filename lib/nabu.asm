@@ -228,7 +228,7 @@ get_char:
 
 ;===============================================================================
 ; Returns the Joystick Status that can be matched against the Joystick enums
-; defined at the end of this file.
+; defined at the beginning of this file.
 ; INPUT: void
 ; OUTPUT: A = 1 when a key is pressed, A = 0 when no key pressed.
 ; CLOBBERS: IY

@@ -15,6 +15,8 @@ main:
         call    setup
         call    draw_shields
 
+        ; initialise the sprite attribute table.
+
 loop:
         ld      a,(ticks)
         cp      0x04
@@ -33,10 +35,23 @@ loop:
         jp      tick
 vdp_wait:
         call    tms_wait
+        ld      a,(bullet_active)
+        or      a
+        jr      z,flush_sprites
+        call    update_bullet
+flush_sprites:
+        call    flush_sprite_attribute_data
 tick:
         inc8    ticks
 user_input:   
         call    is_key_pressed
+        or      a
+        jr      z,joy_input
+        call    player_key_input
+        or      a               ; if player input return value in A is a 0
+        jr      nz,exit         ; then loop else quit.
+joy_input:
+        call    player_joy_input
         or      a
         jr      z,loop
 exit:
@@ -54,6 +69,8 @@ endif
         include 'setup.asm'
         include 'alien.asm'
         include 'shields.asm'
+        include 'sprites.asm'
+        include 'player.asm'
 
 ; stack
         ds      1024

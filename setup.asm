@@ -8,10 +8,13 @@ setup:
         call    tms_clear_vram
         call    tms_init_g1
         
-        ld      de,tms_patternTable
         ld      bc,inv_patterns_len
         ld      hl,inv_patterns
-        call    tms_write_slow
+        call    tms_load_pattern_table
+
+        ld      bc,sprite_patterns_len
+        ld      hl,emptySprite
+        call    tms_load_sprite_pattern_table
 
         ld      c,tms_dark_yellow
         call    tms_set_backdrop_color

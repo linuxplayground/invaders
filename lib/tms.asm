@@ -3,6 +3,7 @@
 ;===============================================================================
 ; Initialize the VDP in Graphics Mode 1 hybrid mode.
 ; refer to .tms_init_g1_registers at the end of this file for details.
+; Disable all sprites by setting byte 0 in each sprite attribute table to 0xD0
 ; INPUT: void
 ; OUTPUT: void
 ; CLOBBERS: none
@@ -12,6 +13,18 @@ tms_init_g1:
         ld      b,.tms_init_g1_registers_length
         ld      c,io_tmslatch
         otir
+        ; clear sprite attribute table and set Y position to D0
+        ld      b,32
+        ld      de,tms_spriteAttributeTable
+        call    tms_set_write_address
+.clear_sprites_loop:
+        ld      a,0xd0
+        call    tms_put
+        xor     a
+        call    tms_put
+        call    tms_put
+        call    tms_put
+        djnz    .clear_sprites_loop
         ret
 
 ;===============================================================================
@@ -26,6 +39,20 @@ tms_set_register:
         ld      a,b
         or      0x80
         out     (io_tmslatch),a
+        ret
+
+;===============================================================================
+; Write one byte of data to the VDP at the current address.
+; includes a delay
+; OUTPUT: void
+; CLOBBERS: none
+;===============================================================================
+tms_put:
+        out     (io_tmsdata),a
+        push    hl
+        pop     hl
+        push    hl
+        pop     hl
         ret
 
 ;===============================================================================
@@ -174,6 +201,30 @@ tms_set_vram_loop:
         ret
 
 ;===============================================================================
+; Load pattern table.
+; INPUT: HL = Address of first byte of pattern data, BC = Number of bytes in 
+; pattern table.
+; OUTPUT: void
+; CLOBBERS: AF, DE
+;===============================================================================
+tms_load_pattern_table:
+        ld      de,tms_patternTable
+        call    tms_write_slow
+        ret
+
+;===============================================================================
+; Load sprite pattern table.
+; INPUT: HL = Address of first byte of pattern data, BC = Number of bytes in 
+; pattern table.
+; OUTPUT: void
+; CLOBBERS: AF, DE
+;===============================================================================
+tms_load_sprite_pattern_table:
+        ld      de,tms_spritePatternTable
+        call    tms_write_slow
+        ret
+
+;===============================================================================
 ; Writes all Zeros to VDP nameTable
 ; INPUT: L = value to write, DE = Number of times to write.
 ; OUTPUT: void
@@ -269,7 +320,7 @@ get_char_at_loc_buf:
         db      0x00,0x80       ; Graphics mode 1, no external video
         db      0xe2,0x81       ; 16K,enable display, enable int, 16x16 sprites
         db      0x05,0x82       ; R2 = name table = 0x1400
-        db      0x08,0x83       ; R3 = color table = 0x0200
+        db      0x80,0x83       ; R3 = color table = 0x2000
         db      0x01,0x84       ; R4 = pattern table = 0x0800
         db      0x20,0x85       ; R5 = sprite attribute table = 0x1000
         db      0x00,0x86       ; R6 = sprite pattern table = 0x0000
