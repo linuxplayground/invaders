@@ -82,7 +82,7 @@ draw_alien_grid:
         inc     a
 .draw_alien_grid_2:
         ld      (de),a
-
+.draw_alien_grid_inc_ix:
         inc     ix
         inc     ix
         inc     ix

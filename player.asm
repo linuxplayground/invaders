@@ -56,7 +56,7 @@ player_joy_input:
 ; check for collisions...
 update_bullet:
         ld      a,(bullet_attributes)
-        sub     3
+        sub     2
         ld      (bullet_attributes),a
         cp      8
         jr      nc,.detect_alien_collide
@@ -69,7 +69,10 @@ update_bullet:
         ld      hl,(bullet_attributes)
         call    tile_at_xy
         or      a
-        jr      z,.update_bullet_return ; no alien under bullet.
+        jr      z,.update_bullet_return ; no alien tile under bullet.
+        ; call    pixel_at_tile_xy
+        ; or      a
+        ; jr      z,.update_bullet_return ; no alien pixel under bullet.
         call    alien_at_tile_xy
         or      a
         jr      z,.update_bullet_return  ; no aliens or shields under bullet

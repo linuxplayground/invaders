@@ -1,5 +1,5 @@
 ; include macros first.
-is_nabu:        equ     1
+is_nabu:        equ     0
         include 'macros.asm'
 
         org     0x100

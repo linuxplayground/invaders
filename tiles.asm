@@ -29,6 +29,28 @@ tile_at_xy:
         ld      a,(hl)
         ret 
 
+; ; test if the specific pixel location of the bullet matches a turned on pixel
+; ; in the tile beneath it.
+; ; inpput  A = pattern name
+; ; returns A = 0 MISS
+; ;         A > 0 HIT which ever bit was set.
+; pixel_at_tile_xy:
+;         ; load the pattern from pattern table offset by tile_px_y
+;         ld      de,inv_patterns
+;         ld      l,a
+;         ld      h,0     ; hl = pattern name
+;         mul8            ; A is offset into invader patterns for start of invaders
+;         ld      a,(tile_px_y)
+;         addhla          ; 
+;         add     hl,de   ; hl points to pattern row offset by tile_px_y
+;         ld      a,(hl)  ; a now has the pattern row data.
+;         ld      c,a     ; save A into c for now.
+;         ld      hl,pattern_test_bit_mask
+;         addhla
+;         ld      a,(hl)  ; a now has the bitmask to test against c
+;         and     c
+;         ret
+
 ; returns HL = pointer to alien at tile_x, tile_y
 ;          A > 0 HIT (pattern name of hit tile.)
 ;          A = 0 MISS
@@ -48,10 +70,14 @@ alien_at_tile_xy:
 .alien_at_test_x:
         ld      b,11                    ; 11 columns to check
 .alien_at_test_x_loop:
-        ld      a,(tile_x)
-        ; add     a,a                     
-        cp      (ix+2)                  
-        jr      z,.alien_at_match       
+        ld      a,(ix+2)
+        ld      c,a
+        ld      a,(tile_x)                
+        cp      c
+        jr      z,.alien_at_match       ; test left side of alien
+        inc     c
+        cp      c
+        jr      z,.alien_at_match       ; test right side of alien
         inc     ix
         inc     ix
         inc     ix
