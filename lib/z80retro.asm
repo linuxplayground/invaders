@@ -66,3 +66,17 @@ tms_wait:
         jp      nz,tms_wait
         in      a,(io_tmslatch) ; read the VDP status register to reset the IRQ
         ret
+
+;===============================================================================
+; Stub functions that can't be done on the retro
+;===============================================================================
+ay_read:
+        ret
+ay_write:
+        ret
+ay_set_mixer:
+        ret
+ay_set_tone_volume:
+        ret
+ay_set_noise_volume:
+        ret

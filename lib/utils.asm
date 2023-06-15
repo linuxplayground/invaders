@@ -96,3 +96,12 @@ hexdump_a:
         add	'A'-'9'-1
 .hexdump_num:
         jp	puts
+
+;===============================================================================
+; Delay routine - ticked off the vdp interrupt
+; INPUT: B number of frames to wait
+;===============================================================================
+delay:
+        call    tms_wait
+        djnz    delay
+        ret
