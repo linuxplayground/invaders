@@ -1,5 +1,4 @@
 ; include macros first.
-is_nabu:        equ     1
         include 'macros.asm'
 
         org     0x100
@@ -7,15 +6,13 @@ is_nabu:        equ     1
 
 ticks:  db 0
 
-if is_nabu = 1
-        call    init_nabu
+        call    init
         ; ay_set_mixer AY_MIX_TONE_A&AY_MIX_TONE_B
         ; ay_set_volume AY_VOLUME_A 15 1
         ; ay_set_volume AY_VOLUME_B 15 1
         ; ay_set_env_period 0x02 0xff
         ; ay_set_env_shape AY_ENV_SHAPE_SAW_CONT
         ; ay_play_note AY_CHANNEL_A 0x00 0x80
-endif
 
 main:
         call    setup
@@ -61,19 +58,11 @@ joy_input:
         or      a
         jr      z,loop
 exit:
-        ay_set_volume AY_VOLUME_A 0 0
-        ay_set_volume AY_VOLUME_B 0 0
-        ay_set_volume AY_VOLUME_C 0 0
-        ay_set_env_shape AY_ENV_SHAPE_OFF
+        call    ay_all_off
         call    cpm_terminate
 
 ; includes
-if is_nabu = 1
-        include 'nabu.asm'
-        include 'ay-3-8910_constants.asm'
-else
-        include 'z80retro.asm'
-endif
+        include 'platform.asm'
         include 'tms.asm'
         include 'utils.asm'
         include 'inv_patterns.asm'

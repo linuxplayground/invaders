@@ -1,12 +1,10 @@
-TOP=.
+TOP=..
 
 SUBDIRS=\
-	build/nabu \
-	build/retro
+	nabu \
+	retro
 
-all::
-
-world:: clean all
+all:: 
 
 include $(TOP)/Make.default
 -include $(TOP)/Make.local

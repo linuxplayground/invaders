@@ -70,9 +70,13 @@ tms_wait:
 ;===============================================================================
 ; Stub functions that can't be done on the retro
 ;===============================================================================
+init:
+        ret
 ay_read:
         ret
 ay_write:
+        ret
+ay_all_off:
         ret
 ay_set_mixer:
         ret

@@ -162,12 +162,22 @@ ay_write:
         ret
 
 ;===============================================================================
+; Turn off all sound output
+;===============================================================================
+ay_all_off:
+        ay_set_volume AY_VOLUME_A 0 0
+        ay_set_volume AY_VOLUME_B 0 0
+        ay_set_volume AY_VOLUME_C 0 0
+        ay_set_env_shape AY_ENV_SHAPE_OFF
+        ret
+
+;===============================================================================
 ; Setup the interrupts for the nabu
 ; INPUT: void
 ; OUTPUT: void
 ; CLOBBERS: hl
 ;===============================================================================
-init_nabu:
+init:
         ;Turn off the rom
         ld      a,CONTROL_ROMSEL|CONTROL_VDOBUF
         out     (io_control),a
@@ -266,3 +276,5 @@ tms_wait:
         xor     a
         ld      (tms_is_ready), a
         ret
+
+        include 'ay_3_8910_constants.asm'

@@ -1,0 +1,9 @@
+include $(TOP)/Make.default
+
+PLATFORM_DIR=$(TOP)/libretro
+ASMFLAGS=-I $(TOP)/src -I $(PLATFORM_DIR) -I $(TOP)/lib
+
+DISKDEF=z80-retro-8k-8m
+
+-include $(TOP)/Make.local
+include $(TOP)/Make.rules

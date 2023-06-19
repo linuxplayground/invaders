@@ -1,0 +1,17 @@
+# TOP must bedeclared before including this file!
+
+BASEDIR = $(TOP)
+
+STOREDIR = "/override/this/in/Make.local"
+ISHKURDIR = "/override/this/in/Make.local"
+
+MKDIR = mkdir -pv
+
+# G Drive is Slot 6.
+DISK_SLOT = 6
+
+# For normal use on a plain Raspberry PI
+SD_DEV=/dev/sda1
+
+# This is used before burning an SD card image to make sure we are on the correct host!
+SD_HOSTNAME=raspberrypi
