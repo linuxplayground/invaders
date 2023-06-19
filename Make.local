@@ -2,7 +2,7 @@
 
 BASEDIR = $(TOP)
 
-STOREDIR = "/override/this/in/Make.local"
+STOREDIR = "/mnt/c/dev/nabu/Nabu Internet Adapter/Store/"
 ISHKURDIR = "/override/this/in/Make.local"
 
 MKDIR = mkdir -pv

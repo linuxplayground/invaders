@@ -1,3 +1,5 @@
+        include 'nabu_macros.asm'
+        
 ;===============================================================================
 ; VARIABLES
 ;===============================================================================
@@ -165,10 +167,7 @@ ay_write:
 ; Turn off all sound output
 ;===============================================================================
 ay_all_off:
-        ay_set_volume AY_VOLUME_A 0 0
-        ay_set_volume AY_VOLUME_B 0 0
-        ay_set_volume AY_VOLUME_C 0 0
-        ay_set_env_shape AY_ENV_SHAPE_OFF
+        ay_set_mixer AY_MIX_ALL_OFF
         ret
 
 ;===============================================================================

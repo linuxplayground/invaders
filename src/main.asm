@@ -7,13 +7,6 @@
 ticks:  db 0
 
         call    init
-        ; ay_set_mixer AY_MIX_TONE_A&AY_MIX_TONE_B
-        ; ay_set_volume AY_VOLUME_A 15 1
-        ; ay_set_volume AY_VOLUME_B 15 1
-        ; ay_set_env_period 0x02 0xff
-        ; ay_set_env_shape AY_ENV_SHAPE_SAW_CONT
-        ; ay_play_note AY_CHANNEL_A 0x00 0x80
-
 main:
         call    setup
         call    draw_shields

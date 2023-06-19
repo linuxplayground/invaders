@@ -56,7 +56,7 @@ player_joy_input:
 ; check for collisions...
 update_bullet:
         ld      a,(bullet_attributes)
-        sub     2
+        sub     3
         ld      (bullet_attributes),a
         cp      8
         jr      nc,.detect_alien_collide
@@ -64,24 +64,24 @@ update_bullet:
         ld      (bullet_attributes),a
         xor     a
         ld      (bullet_active),a
-        jp      .update_bullet_return
+        ret
 .detect_alien_collide:
         ld      hl,(bullet_attributes)
         call    tile_at_xy
         or      a
-        jr      z,.update_bullet_return ; no alien tile under bullet.
-        ; call    pixel_at_tile_xy
-        ; or      a
-        ; jr      z,.update_bullet_return ; no alien pixel under bullet.
+        ret     z                       ; no alien tile under bullet.
+        call    bullet_tile_collide
+        or      a
+        ret     z                       ; no alien pixel under bullet.
+        ; we have hit an alien - find which one and set it's pattern to 0
         call    alien_at_tile_xy
         or      a
-        jr      z,.update_bullet_return  ; no aliens or shields under bullet
+        ret     z                       ; no aliens or shields under bullet
         xor     a
         ld      (hl),a                  ; set the alien pattern to a zero
-        ld      (bullet_active),A       ; disable bullet processing.
+        ld      (bullet_active),a       ; disable bullet processing.
         ld      a,0xd7
         ld      (bullet_attributes),a   ; disable the bullet sprite.
-.update_bullet_return:
         ret
 
 ; variables

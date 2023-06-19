@@ -23,37 +23,61 @@ tile_at_xy:
         ld      hl,(tile_y)
         ld      h,0
         mul32
-        add     hl,de           ; row position in tms buffer
         ld      a,(tile_x)
         addhla                  ; hl points to tile under HL pixel location
+        add     hl,de           ; cell position in tms buffer
         ld      a,(hl)
+        ld      (tile_name),a   ; save pattern name.
         ret 
 
-; ; test if the specific pixel location of the bullet matches a turned on pixel
-; ; in the tile beneath it.
-; ; inpput  A = pattern name
-; ; returns A = 0 MISS
-; ;         A > 0 HIT which ever bit was set.
-; pixel_at_tile_xy:
-;         ; load the pattern from pattern table offset by tile_px_y
-;         ld      de,inv_patterns
-;         ld      l,a
-;         ld      h,0     ; hl = pattern name
-;         mul8            ; A is offset into invader patterns for start of invaders
-;         ld      a,(tile_px_y)
-;         addhla          ; 
-;         add     hl,de   ; hl points to pattern row offset by tile_px_y
-;         ld      a,(hl)  ; a now has the pattern row data.
-;         ld      c,a     ; save A into c for now.
-;         ld      hl,pattern_test_bit_mask
-;         addhla
-;         ld      a,(hl)  ; a now has the bitmask to test against c
-;         and     c
-;         ret
+; sprite to tile collision detection.  We want to test 3 rows from current y
+; to below.  It's possible that the the bullet, could be positioned over an eye
+; or something, and at the speed the bullet goes, could miss the tile altogether
+; input A = pattern name
+;       tile_px_x, tile_px_y
+; returns A = 0 MISS
+;         A > 0 HIT
+bullet_tile_collide:
+        ld      b,4
+.bullet_tile_collide_lp:
+        ld      a,(tile_name)
+        call    pixel_at_tile_xy
+        or      a
+        ret     nz
+        ld      a,(tile_px_y)
+        dec     a
+        ld      (tile_px_y),a
+        djnz    .bullet_tile_collide_lp
+        xor     a
+        ret
+
+
+; test if the specific pixel location of the bullet matches a turned on pixel
+; in the tile beneath it.
+; inpput  A = pattern name
+; returns A = 0 MISS
+;         A > 0 HIT which ever bit was set.
+pixel_at_tile_xy:
+        ; load the pattern from pattern table offset by tile_px_y
+        ld      de,inv_patterns
+        ld      l,a
+        ld      h,0     ; hl = pattern name
+        mul8            ; A is offset into invader patterns for start of invaders
+        ld      a,(tile_px_y)
+        addhla          ; 
+        add     hl,de   ; hl points to pattern row offset by tile_px_y
+        ld      a,(hl)  ; a now has the pattern row data.
+        ld      c,a     ; save A into c for now.
+        ld      hl,pattern_test_bit_mask
+        ld      a,(tile_px_x)
+        addhla
+        ld      a,(hl)  ; a now has the bitmask to test against c
+        and     c
+        ret
 
 ; returns HL = pointer to alien at tile_x, tile_y
-;          A > 0 HIT (pattern name of hit tile.)
-;          A = 0 MISS
+; A > 0 HIT (pattern name of hit tile.)
+; A = 0 MISS
 alien_at_tile_xy:
         ld      ix,aliens
         ld      b,5                     ; search through 5 rows we only have to
@@ -97,3 +121,4 @@ tile_px_x:      db 0
 tile_px_y:      db 0
 tile_x:         db 0
 tile_y:         db 0
+tile_name:      db 0
