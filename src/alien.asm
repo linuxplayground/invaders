@@ -1,10 +1,3 @@
-alien_dir:      db 1    ; 0 = moving left, 1 = moving right
-alien_new_dir:  db 1    ; record the new direction
-alien_drop:     db 0    ; boolean flag to indicate that aliens must drop a row
-alien_top_y:    db 2    ; y value of top row
-alien_bottom_y: db 10   ; y value of bottom row
-alien_row:      db 0    ; row counter
-
 ; move and draw the alien grid
 draw_alien_grid:
         ld      ix,aliens
@@ -152,6 +145,12 @@ drop_aliens:
         inc     a
         ld      (alien_top_y),a
 
+        ; clear another row below to make sheild damage more uniform
+        ld      hl,(alien_bottom_y)
+        ld      h,0
+        inc     hl
+        call    clear_row
+        
         xor     a               ; return value of 0 means not game over.
         ld      (alien_drop),a ; reset drop_aliens flag
         ret

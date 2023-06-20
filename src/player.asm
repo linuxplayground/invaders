@@ -14,7 +14,7 @@ player_joy_input:
         jr      z,.not_left
         ; must be left
         ld      a,(player_attributes+1)
-        dec     a
+        sub     2
         ld      (player_attributes+1),a
         jp      .not_right
 
@@ -24,7 +24,7 @@ player_joy_input:
         jr      z,.not_right
         ; must be right
         ld      a,(player_attributes+1)
-        inc     a
+        add     2
         ld      (player_attributes+1),a
         ; fall through - always check the fire button.
 
@@ -55,6 +55,9 @@ player_joy_input:
 ; move the bullet up the screen.
 ; check for collisions...
 update_bullet:
+        ld      a,(bullet_active)
+        or      a
+        ret     z
         ld      a,(bullet_attributes)
         sub     3
         ld      (bullet_attributes),a
@@ -82,9 +85,12 @@ update_bullet:
         ld      (bullet_active),a       ; disable bullet processing.
         ld      a,0xd7
         ld      (bullet_attributes),a   ; disable the bullet sprite.
+        ; decrement alien count
+        dec8    alien_count
+        ; calculate game speed based on remaining invader count.
+        div8
+        add     2
+        ld      (game_speed),a
         ret
-
-; variables
-bullet_active:  db      0
 
         include "tiles.asm"

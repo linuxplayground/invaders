@@ -116,9 +116,3 @@ alien_at_tile_xy:
         pop     hl
         ld      a,(ix+0)                ; returns the pattern name of the alien
         ret                             ; matched.
-
-tile_px_x:      db 0
-tile_px_y:      db 0
-tile_x:         db 0
-tile_y:         db 0
-tile_name:      db 0

@@ -89,3 +89,9 @@ inc8: macro addr
         inc     a
         ld      (addr),a
 endm
+
+dec8: macro addr
+        ld      a,(addr)
+        dec     a
+        ld      (addr),a
+endm

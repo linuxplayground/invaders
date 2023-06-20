@@ -4,53 +4,49 @@
         org     0x100
         ld      sp,.stack
 
-ticks:  db 0
-
         call    init
 main:
         call    setup
         call    draw_shields
 
-        ; initialise the sprite attribute table.
 
 loop:
+        inc8    ticks
+        ld      a,(alien_count) ; check if we have won
+        or      a
+        jr      z,exit_game
+        call    is_key_pressed  ; check user input
+        or      a
+        jr      z,joy_input
+        call    player_key_input
+        or      a
+        jr      nz,exit_game
+joy_input:                      ; check joystick inputs
+        call    player_joy_input
+        call    update_bullet   ; updates the bullet if one is active
+
+        ; handle screen update
+        call    tms_wait        ; wait for TMS Frame
+        call    flush_sprite_attribute_data   ; always flush the sprites
+        ld      a,(game_speed)
+        ld      c,a
         ld      a,(ticks)
-        cp      0x08
-        jr      nz,vdp_wait
+        cp      c
+        jr      c,loop          ; ticks < game_speed, do not flush buffer
         call    draw_alien_grid
         call    tms_flush_buffer
         ld      a,(alien_drop)
         or      a
-        jr      z,.reset_ticks
+        jr      z,reset_ticks   ; only drop aliens if they reach edge
         call    drop_aliens
-        or      a
-        jp      nz,exit
-.reset_ticks:
-        ; xor     a
-        ld      (ticks),a
-        jp      tick
-vdp_wait:
-        call    tms_wait
-        ld      a,(bullet_active)
-        or      a
-        jr      z,flush_sprites
-        call    update_bullet
-flush_sprites:
-        call    flush_sprite_attribute_data
-tick:
-        inc8    ticks
-user_input:   
-        call    is_key_pressed
-        or      a
-        jr      z,joy_input
-        call    player_key_input
-        or      a               ; if player input return value in A is a 0
-        jr      nz,exit         ; then loop else quit.
-joy_input:
-        call    player_joy_input
-        or      a
-        jr      z,loop
-exit:
+        or      a               ; aliens have reached row 22 - end game
+        jp      nz,exit_game
+reset_ticks:
+        xor     a
+        ld      (ticks),a       ; reset ticks.
+        ; 
+        jp      loop
+exit_game:
         call    ay_all_off
         call    cpm_terminate
 
@@ -65,6 +61,22 @@ exit:
         include 'sprites.asm'
         include 'player.asm'
 
+; global variables
+ticks:          db 0
+game_speed:     db 8
+tile_px_x:      db 0
+tile_px_y:      db 0
+tile_x:         db 0
+tile_y:         db 0
+tile_name:      db 0
+bullet_active:  db 0
+alien_dir:      db 1    ; 0 = moving left, 1 = moving right
+alien_new_dir:  db 1    ; record the new direction
+alien_drop:     db 0    ; boolean flag to indicate that aliens must drop a row
+alien_top_y:    db 2    ; y value of top row
+alien_bottom_y: db 10   ; y value of bottom row
+alien_row:      db 0    ; row counter
+alien_count:    db 55   ; remaning aliens
 ; stack
         ds      1024
 .stack: equ     $
