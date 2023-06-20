@@ -84,5 +84,5 @@ ay_set_tone_volume:
         ret
 ay_set_noise_volume:
         ret
-ay_play_note:
+ay_play_note_delay:
         ret

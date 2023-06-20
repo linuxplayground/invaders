@@ -275,7 +275,7 @@ tms_flush_buffer:
 ;===============================================================================
 ; Write a characater to the tms_buffer
 ; INPUT: D = x, E = Y, A = char
-; CLOBBERS: BC, DE, HL
+; CLOBBERS: AF
 ;===============================================================================
 set_char_at_loc_buf:
         push    bc
@@ -314,6 +314,39 @@ get_char_at_loc_buf:
         ret
 
 ;===============================================================================
+; Print zero terminated string at location into buffer.
+; INPUT: D = x, E = Y, BC = ptr to string
+; OUPTUT: void
+; CLOBBERS: AF, BC, DE, HL
+;===============================================================================
+print_at_loc_buf:
+        push    bc
+        push    de
+        push    hl
+        ; calculate vram from x,y
+        ld      l,e             ; y in l
+        ld      h,0
+        mul32                   ; y x 32
+        ld      a,d             ; x in a
+        addhla                  ; add x to hl
+        ld      de,tms_buffer
+        add     hl,de
+        ex      de,hl           ; de points to vram address.
+        pop     hl
+.print_at_loc_buf_loop:         ; iterate through stirng until \0
+        ld      a,(hl)
+        or      a
+        jr      z,.print_at_loc_buf_exit
+        ld      (de),a
+        inc     hl
+        inc     de
+        jp      .print_at_loc_buf_loop
+.print_at_loc_buf_exit:
+        pop     de
+        pop     bc
+        ret
+
+;===============================================================================
 ; Graphics Mode I Registers
 ;===============================================================================
 .tms_init_g1_registers:
@@ -334,11 +367,6 @@ get_char_at_loc_buf:
                                         ; boundary.
 ; Frame buffer for graphics mode 2
 tms_buffer:     ds 0x300, 0
-
-buffer_x:       db 0            ; variable to hold buffer x pos
-buffer_y:       db 0            ; variable to hold buffer y pos
-buffer_pix_x:   db 0            ; variable to hold pixel x offset in tile
-buffer_pix_y:   db 0            ; vairable to hold pixel y offset in tile
 
 pattern_test_bit_mask:        
         db %10000000

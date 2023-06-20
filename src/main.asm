@@ -7,6 +7,7 @@
         call    init
 main:
         call    setup
+        call    new_game
         call    draw_shields
 
 
@@ -82,26 +83,37 @@ exit_game:
         include 'shields.asm'
         include 'sprites.asm'
         include 'player.asm'
+        include 'strings.asm'
 
 ; global variables
-ticks:          db 0
-game_speed:     db 8
-tile_px_x:      db 0
-tile_px_y:      db 0
-tile_x:         db 0
-tile_y:         db 0
-tile_name:      db 0
-bullet_active:  db 0
+ticks:          db 0    ; current frame count
+game_speed:     db 8    ; number of frames to wait before flushing screen
+tile_px_x:      db 0    ; pixel offset inside tile for collision detection
+tile_px_y:      db 0    ; pixel offset inside tile for collision detection
+tile_x:         db 0    ; tile position
+tile_y:         db 0    ; tile position
+tile_name:      db 0    ; name of tile in tms pattern table
+bullet_active:  db 0    ; keep track of if a bullet is in flight
+bomb_active:    db 0    ; keep track of if a bomb is in flight
+ufo_active:     db 0    ; keep track of if a ufo is active
 alien_dir:      db 1    ; 0 = moving left, 1 = moving right
 alien_new_dir:  db 1    ; record the new direction
 alien_drop:     db 0    ; boolean flag to indicate that aliens must drop a row
 alien_top_y:    db 2    ; y value of top row
 alien_bottom_y: db 10   ; y value of bottom row
 alien_row:      db 0    ; row counter
-alien_count:    db 57   ; remaning aliens
-alien_note:     db 10, 9, 7, 5
-alien_march_counter: db 4; marching tempo
+alien_count:    db 55   ; remaning aliens
+alien_note:     db 10, 9, 7, 5 ; index into ay_notes
+alien_march_counter: db 4; marching tempo (higher numbers = slower)
 alien_march_index: db 0 ; index into alien_note
+lives:          db 3    ; 3 lives.  (when lives reaches zero we are dead.)
+extra_life_given: db 0  ; keep track of if extra life has een given
+str_score:      db "SCORE<     > HIGH<     >",0
+
+score:          ds 2    ; two bytes for the score (16 bit)
+high_score:     ds 2    ; two bytes for the high score (16 bit)
+tb16:           ds 7    ; ascii integer buffer with leading zeros and /0 termin
+aliens:         ds    aliens_len  
 ; stack
         ds      1024
 .stack: equ     $

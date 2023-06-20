@@ -22,4 +22,47 @@ setup:
         ld      c,tms_gray<<4|tms_black
         call    tms_set_all_colors
 
+        ld      de,0x0000
+        ld      hl,str_score
+        call    print_at_loc_buf
+        ret
+
+; Set up new game  This is needed so we can impliment the conept of levels
+; and play again etc.  First we copy the aliens array out of memory into
+; reserved space allocated for this purpose.
+new_game:
+        ; copy aliens_default into aliens for this game.
+        ld      bc,aliens_len
+        ld      hl,aliens_default
+        ld      de,aliens
+        ldir
+
+        ; reset standard game_vars
+        ld      a,55
+        ld      (alien_count),a
+        ld      a,2
+        ld      (alien_top_y),a
+        ld      a,10
+        ld      (alien_bottom_y),a
+        ld      a,8
+        ld      (game_speed),a
+        ld      a,1
+        ld      (alien_dir),a
+        ld      (alien_new_dir),a
+        xor     a
+        ld      (bullet_active),a
+        ld      (bomb_active),a
+        ld      (ufo_active),a
+        ld      (score),a
+        ld      hl,40
+        ld      (high_score),hl
+
+        ; print the high score
+        ld      de,tb16
+        ld      hl,(high_score)
+        call    itoa16
+        ld      de,0x1200       ;x=8, y=0
+        ld      hl,tb16
+        call    print_at_loc_buf
+
         ret

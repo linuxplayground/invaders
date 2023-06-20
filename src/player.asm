@@ -91,12 +91,41 @@ update_bullet:
         ld      (bullet_active),a       ; disable bullet processing.
         ld      a,0xd7
         ld      (bullet_attributes),a   ; disable the bullet sprite.
+        ; update score
+        inc16   score
+        call    print_score
         ; decrement alien count
         dec8    alien_count
         ; calculate game speed based on remaining invader count.
         div8
         add     2
         ld      (game_speed),a
+        ret
+
+print_score:
+        ld      de,tb16
+        ld      hl,(score)
+        call    itoa16
+        ld      de,0x0600       ;x=8, y=0
+        ld      hl,tb16
+        call    print_at_loc_buf
+
+        ld      hl,(score)
+        ex      de,hl
+        ld      hl,(high_score)
+        or      a
+        sbc     hl,de
+        add     hl,de
+        ret     nc
+        ld      hl,(score)
+        ld      (high_score),hl
+
+        ld      de,tb16
+        ld      hl,(high_score)
+        call    itoa16
+        ld      de,0x1200       ;x=8, y=0
+        ld      hl,tb16
+        call    print_at_loc_buf
         ret
 
         include "tiles.asm"

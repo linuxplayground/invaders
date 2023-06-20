@@ -90,6 +90,14 @@ inc8: macro addr
         ld      (addr),a
 endm
 
+inc16: macro addr
+        push    hl
+        ld      hl,(addr)
+        inc     hl
+        ld      (addr),hl
+        pop     hl
+endm
+
 dec8: macro addr
         ld      a,(addr)
         dec     a
