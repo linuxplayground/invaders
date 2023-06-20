@@ -44,7 +44,29 @@ joy_input:                      ; check joystick inputs
 reset_ticks:
         xor     a
         ld      (ticks),a       ; reset ticks.
-        ; 
+
+        ; marching music
+        dec8    alien_march_counter
+        or      a
+        jr      nz,exit_loop
+        ld      a,4
+        ld      (alien_march_counter),a
+
+        ld      hl,alien_note
+        ld      a,(alien_march_index)
+        addhla
+        ld      a,(hl)
+        ld      b,1             ; TONE B
+        ld      de,0x0480       ; ENVELOPE DELAY
+        ld      l,a
+        ld      h,0
+        call    ay_play_note_delay
+        inc8    alien_march_index
+        cp      4
+        jr      c,exit_loop
+        xor     a
+        ld      (alien_march_index),a
+exit_loop:
         jp      loop
 exit_game:
         call    ay_all_off
@@ -76,7 +98,10 @@ alien_drop:     db 0    ; boolean flag to indicate that aliens must drop a row
 alien_top_y:    db 2    ; y value of top row
 alien_bottom_y: db 10   ; y value of bottom row
 alien_row:      db 0    ; row counter
-alien_count:    db 55   ; remaning aliens
+alien_count:    db 57   ; remaning aliens
+alien_note:     db 10, 9, 7, 5
+alien_march_counter: db 4; marching tempo
+alien_march_index: db 0 ; index into alien_note
 ; stack
         ds      1024
 .stack: equ     $

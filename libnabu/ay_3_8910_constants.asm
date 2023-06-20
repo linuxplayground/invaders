@@ -34,4 +34,5 @@ AY_ENVELOPE_C:          equ 0x0c
 AY_ENVELOPE_SHAPE:      equ 0x0d
 
 AY_ENV_SHAPE_OFF:       equ 0x00
+AY_ENV_SHAPE_DECAY:     equ 0x00
 AY_ENV_SHAPE_SAW_CONT:  equ 0x0A

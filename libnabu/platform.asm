@@ -171,6 +171,67 @@ ay_all_off:
         ret
 
 ;===============================================================================
+; Play note
+; INPUT: B  = Channel to play on 0 = A, 1 = B, 2 = C
+;        DE = Delay
+;        HL = Note to play is an index into the ay_notes data table
+; OUTPUT: void
+; CLOBBERS: 
+;===============================================================================
+ay_play_note_delay:
+        push    hl
+        push    bc              ; the macros nuke BC
+        ld      b,AY_ENVELOPE_F
+        ld      c,e
+        call    ay_write        ; fine period
+        ld      b,AY_ENVELOPE_C
+        ld      c,d             ; course period
+        call    ay_write
+
+        pop     bc
+        push    bc
+
+        ld      a,b
+        cp      0
+        jr      nz,.not_a
+        ; is a
+        ay_set_mixer AY_MIX_TONE_A
+        ay_set_volume AY_VOLUME_A 0 1
+        jp      .play_note
+.not_a:
+        cp      1
+        jr      nz,.not_b
+        ; is b
+        ay_set_mixer AY_MIX_TONE_B
+        ay_set_volume AY_VOLUME_B 0 1
+        jp      .play_note
+.not_b:
+        ; is c or something else.
+        ay_set_mixer AY_MIX_TONE_C
+        ay_set_volume AY_VOLUME_C 0 1
+        ; fall through
+.play_note:
+        pop     bc
+        pop     hl
+        ld      a,b
+        add     a,a             ; register pair - so need to double it. 0, 2, 4
+        ld      b,a
+        ld      de,ay_notes
+        add     hl,hl           ; double HL because of length of each array
+        add     hl,de           ; get pointer into ay_notes
+        inc     hl              ; increment the pointer into fine value
+        ld      c,(hl)          ; load fine value 
+                                ; b is already at fine register
+        call    ay_write
+
+        dec     hl              ; increment pointer for course value
+        ld      c,(hl)          ; get cource value
+        inc     b               ; select course register
+        call    ay_write
+        ay_set_env_shape AY_ENV_SHAPE_DECAY
+        ret
+
+;===============================================================================
 ; Setup the interrupts for the nabu
 ; INPUT: void
 ; OUTPUT: void
@@ -277,3 +338,4 @@ tms_wait:
         ret
 
         include 'ay_3_8910_constants.asm'
+        include 'ay_notes.asm'

@@ -23,5 +23,5 @@ store: C.DSK
 	cp $^ $(STOREDIR)
 
 clean::
-	rm -f *.com *.lis c.dsk
+	rm -f *.com *.lis c.dsk *.sym C.DSK
 

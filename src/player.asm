@@ -36,6 +36,12 @@ player_joy_input:
         and     joy_map_button
         jr      z,.return
         ; do fire logic
+
+        ld      b,0             ; TONE A
+        ld      de,0x0880       ; ENVELOPE DELAY
+        ld      hl,71           ; INDEX TO NOTE
+        call    ay_play_note_delay
+
         ld      iy,bullet_active
         ld      (iy+0),1       ; mark bullet as active
         ld      hl,(player_attributes)
