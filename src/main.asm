@@ -7,9 +7,17 @@
         call    init
 main:
         call    setup
+        call    menu
+        or      a
+        jp      nz,exit_game
+
+        call    tms_clear_buffer
+        ; short delay so we don't get the shoot event from exiting the menu.
+        ld      b,30
+        call    delay
+
         call    new_game
         call    draw_shields
-
 
 loop:
         inc8    ticks
@@ -84,6 +92,7 @@ exit_game:
         include 'sprites.asm'
         include 'player.asm'
         include 'strings.asm'
+        include 'menu.asm'
 
 ; global variables
 ticks:          db 0    ; current frame count
@@ -109,6 +118,10 @@ alien_march_index: db 0 ; index into alien_note
 lives:          db 3    ; 3 lives.  (when lives reaches zero we are dead.)
 extra_life_given: db 0  ; keep track of if extra life has een given
 str_score:      db "SCORE<     > HIGH<     >",0
+str_menu_1:     db "INVADERS :: V1.0",0
+str_menu_2:     db "BY PRODUCTION-DAVE",0
+str_menu_3:     db "SHOOT STARTS",0
+str_menu_4:     db "ESCAPE QUITS",0
 
 score:          ds 2    ; two bytes for the score (16 bit)
 high_score:     ds 2    ; two bytes for the high score (16 bit)

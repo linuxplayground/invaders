@@ -21,10 +21,6 @@ setup:
         
         ld      c,tms_gray<<4|tms_black
         call    tms_set_all_colors
-
-        ld      de,0x0000
-        ld      hl,str_score
-        call    print_at_loc_buf
         ret
 
 ; Set up new game  This is needed so we can impliment the conept of levels
@@ -49,20 +45,20 @@ new_game:
         ld      a,1
         ld      (alien_dir),a
         ld      (alien_new_dir),a
+        ld      a,3
+        ld      (lives),a
         xor     a
         ld      (bullet_active),a
         ld      (bomb_active),a
         ld      (ufo_active),a
         ld      (score),a
+        ; this bit will come from disk eventually.
         ld      hl,40
         ld      (high_score),hl
-
-        ; print the high score
-        ld      de,tb16
-        ld      hl,(high_score)
-        call    itoa16
-        ld      de,0x1200       ;x=8, y=0
-        ld      hl,tb16
+        
+        ld      de,0x0000
+        ld      hl,str_score
         call    print_at_loc_buf
-
+        call    update_scores
+        call    display_lives
         ret

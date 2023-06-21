@@ -229,14 +229,15 @@ tms_load_sprite_pattern_table:
 ; INPUT: L = value to write, DE = Number of times to write.
 ; OUTPUT: void
 ; CLOBBERS: AF, BC, DE, HL
+; BUGGY - NEEDS INVESTIGATION.  USE tms_clear_buffer INSTEAD
 ;===============================================================================
-tms_clear_screen:
-        ld      hl,tms_nameTable
-        call    tms_set_write_address
+; tms_clear_screen:
+;         ld      hl,tms_nameTable
+;         call    tms_set_write_address
 
-        ld      de,tms_nameTableLen
-        ld      l,0x00
-        jp      tms_set_vram_loop_start
+;         ld      de,tms_nameTableLen
+;         ld      l,0x00
+;         jp      tms_set_vram_loop_start
 
 ;===============================================================================
 ; Writes all Zeros to tms_buffer
@@ -315,7 +316,7 @@ get_char_at_loc_buf:
 
 ;===============================================================================
 ; Print zero terminated string at location into buffer.
-; INPUT: D = x, E = Y, BC = ptr to string
+; INPUT: D = x, E = Y, HL = ptr to string
 ; OUPTUT: void
 ; CLOBBERS: AF, BC, DE, HL
 ;===============================================================================
@@ -344,6 +345,35 @@ print_at_loc_buf:
 .print_at_loc_buf_exit:
         pop     de
         pop     bc
+        ret
+
+;===============================================================================
+; Prints string pointed by HL to ROW (C) in the center of the line.
+; INPUT: HL Pointer to zero terminated string
+;         C Row number to write to.
+; OUTPUT: A=0 when no erros, A != 0 when erros.
+; CLOBBERS: ???         
+;===============================================================================
+center_text_in_buf_row:
+        push    hl
+        push    bc
+        call    str_len
+        ld      a,c     ;  has length of string
+        cp      31
+        jp      nc,.center_text_maxlen_error
+        div2            ; divide length of string by 2
+        ld      c,a
+        ld      a,16
+        sub     c
+        ; now print
+        ld      d,a
+        pop     bc
+        ld      e,c
+        pop     hl
+        jp      print_at_loc_buf
+
+.center_text_maxlen_error:
+        ld      a,1
         ret
 
 ;===============================================================================

@@ -93,7 +93,7 @@ update_bullet:
         ld      (bullet_attributes),a   ; disable the bullet sprite.
         ; update score
         inc16   score
-        call    print_score
+        call    update_scores
         ; decrement alien count
         dec8    alien_count
         ; calculate game speed based on remaining invader count.
@@ -102,6 +102,15 @@ update_bullet:
         ld      (game_speed),a
         ret
 
+print_high_score:
+        ; print the high score
+        ld      de,tb16
+        ld      hl,(high_score)
+        call    itoa16
+        ld      de,0x1200       ;x=8, y=0
+        ld      hl,tb16
+        call    print_at_loc_buf
+        ret
 print_score:
         ld      de,tb16
         ld      hl,(score)
@@ -109,23 +118,42 @@ print_score:
         ld      de,0x0600       ;x=8, y=0
         ld      hl,tb16
         call    print_at_loc_buf
+        ret
 
+update_scores:
+        call    print_score
+        ; check if high score needs updating
         ld      hl,(score)
         ex      de,hl
         ld      hl,(high_score)
         or      a
         sbc     hl,de
         add     hl,de
-        ret     nc
+        jr      nc,.update_scores_print_high_score
+        ; it does - set it.
         ld      hl,(score)
         ld      (high_score),hl
+.update_scores_print_high_score:
+        jp      print_high_score
 
-        ld      de,tb16
-        ld      hl,(high_score)
-        call    itoa16
-        ld      de,0x1200       ;x=8, y=0
-        ld      hl,tb16
-        call    print_at_loc_buf
+display_lives:
+        ; clear the lives space in the title bar.
+        ld      de,0x1f00       ; x=31, y=0
+        ld      b,5
+.display_lives_clear_lp:
+        xor     a
+        call    set_char_at_loc_buf
+        dec     d
+        djnz .display_lives_clear_lp
+        ; draw the remaining lives
+        ld      de,0x1f00
+        ld      a,(lives)
+        ld      b,a
+.display_lives_lp:
+        ld      a,0x78          ; lives icon
+        call    set_char_at_loc_buf
+        dec     d
+        djnz    .display_lives_lp
         ret
 
         include "tiles.asm"

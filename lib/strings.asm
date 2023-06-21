@@ -1,9 +1,5 @@
 ;===============================================================================
-; Simple as possible string library
-;===============================================================================
-
-;===============================================================================
-; itoa8 - convert an unsigned 16bit word to ascii.  Adds leading ZEROS
+; itoa16 - convert an unsigned 16bit word to ascii.  Adds leading ZEROS
 ; INPUT: DE pointer to 7 byte buffer for the result including the terminating
 ;               zero.
 ;        HL value to convert
@@ -34,3 +30,20 @@ itoa16:
         ld      (de),a
         inc     de
         ret
+
+;===============================================================================
+; Returns the length of a zero terminated string buffer.
+; INPUT: HL Pointer to zero terminated string buffer
+; OUTPUT: C = Length of string
+; CLOBBERS: BC
+;===============================================================================
+str_len:
+        ld      c,0
+.str_len_lp:
+        ld      a,(hl)
+        or      a
+        ret     z
+        inc     hl
+        inc     c
+        ret     z       ; if overflow beyond 255, then return.
+        jp      .str_len_lp
