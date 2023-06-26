@@ -52,6 +52,12 @@ new_game:
         ld      (bomb_active),a
         ld      (ufo_active),a
         ld      (score),a
+
+        ; disable UFO sprite that was shown in the menu.
+        ld      hl,0xffd7
+        ld      (ufo_attributes),hl
+        call    flush_sprite_attribute_data
+
         ; this bit will come from disk eventually.
         ld      hl,40
         ld      (high_score),hl
@@ -61,4 +67,14 @@ new_game:
         call    print_at_loc_buf
         call    update_scores
         call    display_lives
+        call    draw_score_line
         ret
+
+draw_score_line:
+        ld      de,0x0001       ; x=00, y=0
+        ld      b,32
+.display_lives_clear_lp:
+        ld      a,0x13
+        call    set_char_at_loc_buf
+        inc     d
+        djnz .display_lives_clear_lp

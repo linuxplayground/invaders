@@ -363,7 +363,7 @@ center_text_in_buf_row:
         jp      nc,.center_text_maxlen_error
         div2            ; divide length of string by 2
         ld      c,a
-        ld      a,16
+        ld      a,15
         sub     c
         ; now print
         ld      d,a
@@ -377,6 +377,17 @@ center_text_in_buf_row:
         ret
 
 ;===============================================================================
+; Delay routine - ticked off the vdp interrupt
+; INPUT: B number of frames to wait
+; OUPTUT: void
+; CLOBBERS: none
+;===============================================================================
+tms_delay:
+        call    tms_wait
+        djnz    tms_delay
+        ret
+
+;===============================================================================
 ; Graphics Mode I Registers
 ;===============================================================================
 .tms_init_g1_registers:
@@ -387,7 +398,7 @@ center_text_in_buf_row:
         db      0x01,0x84       ; R4 = pattern table = 0x0800
         db      0x20,0x85       ; R5 = sprite attribute table = 0x1000
         db      0x00,0x86       ; R6 = sprite pattern table = 0x0000
-        db      0xf1,0x87       ; R7 = fg=white, bg=black
+        db      0xf0,0x87       ; R7 = fg=white, bg=black
 .tms_init_g1_registers_length: equ $-.tms_init_g1_registers
 
 ;===============================================================================

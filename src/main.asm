@@ -1,5 +1,7 @@
-; include macros first.
-        include 'macros.asm'
+debug:  equ     0
+        
+        include "stdlib.asm"
+        include "stdio.asm"
 
         org     0x100
         ld      sp,.stack
@@ -12,12 +14,19 @@ main:
         jp      nz,exit_game
 
         call    tms_clear_buffer
-        ; short delay so we don't get the shoot event from exiting the menu.
-        ld      b,30
-        call    delay
+
+        ld      hl,0x78ac
+        ld      (player_attributes),hl   ; reset vertical position of player after menu
+        ld      hl,0xd0ff
+        ld      (ufo_attributes),hl   ; reset vertical position of player after menu
+        call    flush_sprite_attribute_data
 
         call    new_game
         call    draw_shields
+        call    draw_alien_grid
+        call    tms_wait
+        call    tms_flush_buffer
+        call    blink_player
 
 loop:
         inc8    ticks
@@ -81,10 +90,10 @@ exit_game:
         call    ay_all_off
         call    cpm_terminate
 
+
 ; includes
         include 'platform.asm'
         include 'tms.asm'
-        include 'utils.asm'
         include 'inv_patterns.asm'
         include 'setup.asm'
         include 'alien.asm'
@@ -105,6 +114,7 @@ tile_name:      db 0    ; name of tile in tms pattern table
 bullet_active:  db 0    ; keep track of if a bullet is in flight
 bomb_active:    db 0    ; keep track of if a bomb is in flight
 ufo_active:     db 0    ; keep track of if a ufo is active
+fire_count:     db 22   ; number of shots remaining before next UFO
 alien_dir:      db 1    ; 0 = moving left, 1 = moving right
 alien_new_dir:  db 1    ; record the new direction
 alien_drop:     db 0    ; boolean flag to indicate that aliens must drop a row
@@ -118,10 +128,11 @@ alien_march_index: db 0 ; index into alien_note
 lives:          db 3    ; 3 lives.  (when lives reaches zero we are dead.)
 extra_life_given: db 0  ; keep track of if extra life has een given
 str_score:      db "SCORE<     > HIGH<     >",0
-str_menu_1:     db "INVADERS :: V1.0",0
+str_menu_1:     db "INVADERS    V1.0",0
 str_menu_2:     db "BY PRODUCTION-DAVE",0
 str_menu_3:     db "SHOOT STARTS",0
 str_menu_4:     db "ESCAPE QUITS",0
+str_menu_5:     db " 5 25 45 ?? P1",0
 
 score:          ds 2    ; two bytes for the score (16 bit)
 high_score:     ds 2    ; two bytes for the high score (16 bit)

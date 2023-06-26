@@ -34,16 +34,20 @@ itoa16:
 ;===============================================================================
 ; Returns the length of a zero terminated string buffer.
 ; INPUT: HL Pointer to zero terminated string buffer
-; OUTPUT: C = Length of string
+; OUTPUT: BC = Length of string, original value of HL
 ; CLOBBERS: BC
 ;===============================================================================
 str_len:
-        ld      c,0
+        push    hl
+        ld      bc,0x0000
 .str_len_lp:
         ld      a,(hl)
         or      a
-        ret     z
+        jr      z,.str_len_done
         inc     hl
-        inc     c
-        ret     z       ; if overflow beyond 255, then return.
+        inc     bc
+        jr      z,.str_len_done ; if overflow beyond 255, then return.
         jp      .str_len_lp
+.str_len_done:
+        pop     hl
+        ret

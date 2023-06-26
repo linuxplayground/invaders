@@ -1,0 +1,11 @@
+* assign colours to invaders
+* assign points to invader classes 5 25 45
+* set / fetch high score from disk
+        * add disk IO to lib / utils
+* destroy aliens on hit
+* explosion sprite
+* bombs
+* loose life on bomb hit
+* restart after life lost
+* display remaining lives
+* UFO

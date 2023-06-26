@@ -156,4 +156,26 @@ display_lives:
         djnz    .display_lives_lp
         ret
 
+; blink the player ship
+blink_player:
+        ld      c,3
+.blink_player_lp:
+        push    bc
+        ld      a,0x00
+        ld      (player_attributes+3),a
+        call    tms_wait
+        call    flush_sprite_attribute_data
+        ld      b,20
+        call    tms_delay
+        ld      a,0x0f
+        ld      (player_attributes+3),a
+        call    tms_wait
+        call    flush_sprite_attribute_data
+        ld      b,20
+        call    tms_delay
+        pop     bc
+        dec     c
+        jr      nz,.blink_player_lp
+        ret
+
         include "tiles.asm"
