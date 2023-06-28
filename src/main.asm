@@ -1,7 +1,4 @@
-debug:  equ     0
-        
-        include "stdlib.asm"
-        include "stdio.asm"
+        include 'macros.asm'
 
         org     0x100
         ld      sp,.stack
@@ -88,6 +85,7 @@ exit_loop:
         jp      loop
 exit_game:
         call    ay_all_off
+        call    save_high_score
         call    cpm_terminate
 
 
@@ -102,6 +100,8 @@ exit_game:
         include 'player.asm'
         include 'strings.asm'
         include 'menu.asm'
+        include "stdlib.asm"
+        include "stdio.asm"
 
 ; global variables
 ticks:          db 0    ; current frame count
@@ -134,10 +134,11 @@ str_menu_3:     db "SHOOT STARTS",0
 str_menu_4:     db "ESCAPE QUITS",0
 str_menu_5:     db " 5 25 45 ?? P1",0
 
+high_score_name: db "INVADERSDAT",0
 score:          ds 2    ; two bytes for the score (16 bit)
 high_score:     ds 2    ; two bytes for the high score (16 bit)
 tb16:           ds 7    ; ascii integer buffer with leading zeros and /0 termin
-aliens:         ds    aliens_len  
+aliens:         ds aliens_len
 ; stack
         ds      1024
 .stack: equ     $

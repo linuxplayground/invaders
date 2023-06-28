@@ -3,11 +3,27 @@
 ;===============================================================================
 ; VARIABLES
 ;===============================================================================
-origint:          db 0
-last_key_int_val: db 0
-tms_status_reg:   db 0
-tms_is_ready:     db 0
+origint:                db 0
+last_key_int_val:       db 0
+kbd_buffer_read_pos:    db 0
+kbd_buffer_write_pos:   db 0
+tms_status_reg:         db 0
+tms_is_ready:           db 0
+joy_status:             ds 2
+kbd_buffer:             ds 0xff
 
+
+;===============================================================================
+; Blocking wait for keypress
+; INPUT: void
+; OUTPUT: A=0 no key press, A=1 key press detected
+; CLOBBERS: HL on Nabu
+;===============================================================================
+wait_for_key:
+        call    is_key_pressed
+        or      a
+        jr      nz,wait_for_key
+        ret
 ;===============================================================================
 ; CONSTANTS
 ;===============================================================================

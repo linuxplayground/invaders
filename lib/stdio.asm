@@ -15,24 +15,8 @@ fcb:                    equ 0x5c
 fblk_c:                 db 0x00         ; 8bit counter of 128byte blocks
 p_flast:                dw 0x0000       ; ptr to last byte of memory
 p_fcur:                 dw 0x0000       ; ptr to current byte in file
-fcount:                 db 0x80         ; number of bytes to read.
+fcount:                 db 0x80         ; number of bytes to read or write
 frec:                   ds 0x80         ; 128 byte internal buffer for file io
-joy_status:             ds 4
-kbd_buffer:             ds 0xff
-kbd_buffer_read_pos:    db 0
-kbd_buffer_write_pos:   db 0
-
-;===============================================================================
-; Blocking wait for keypress
-; INPUT: void
-; OUTPUT: A=0 no key press, A=1 key press detected
-; CLOBBERS: HL on Nabu
-;===============================================================================
-wait_for_key:
-        call    is_key_pressed
-        or      a
-        jr      nz,wait_for_key
-        ret
 
 ;===============================================================================
 ; CP/M Get Key press
@@ -111,17 +95,11 @@ f_make:
         ld      de,fcb          ; de points to fcb
         ld      c,bdos_fdelete
         call    bdos_call       ; delete the file if it already exists.
-if debug=1
-        call    hexdump_a
-endif
         xor     a
         ld      (fcb+32),a      ; set index into file to zero
         ld      de,fcb          ; de points to fcb
         ld      c,bdos_fmake
         call    bdos_call       ; fcb is now initialised with the file details.
-if debug=1
-        call    hexdump_a
-endif
         ret
 
 ;===============================================================================
@@ -141,10 +119,7 @@ f_open:
         ld      de,fcb          ; de points to fcb
         ld      c,bdos_fopen
         call    bdos_call       ; fcb is now initialised with the file details.
-if debug=1
-        call    hexdump_a
-endif
-        ret
+        ret                     ; or 0xFF on error.
 
 ;===============================================================================
 ; Close an alrady open file using the previously set FCB.
@@ -177,20 +152,14 @@ flush_frec:
 ; load data into frec while writing to file.
 write_frec:
         ld      de,frec
-        ld      b,0x80
+        ld      b,0     ; c = number of bytes 80 or less than 80.
 .write_frec_lp:
-        ld      a,(hl)
-        or      a
-        jr      z,.write_frec_eof
-        ld      (de),a
-        inc     de
-        inc     hl
-        djnz    .write_frec_lp
-        ret
+        ldir
 .write_frec_eof:         ; insert EOF
         ; inc     de    ; data is zero terminated, replace zero with ctrl+z
         ld      a,0x1a
         ld      (de),a
+        ; inc     hl
         ret
 
 ;===============================================================================
@@ -204,12 +173,32 @@ write_frec:
 ;===============================================================================
 f_write:
         push    hl
+        ld      (fcount),bc     ; save byte count to write
         ; save value of HL ptr + BC len
         adc     hl,bc
         ld      (p_flast),hl
         pop     hl
 .f_write_loop:
         call    flush_frec
+        ; calculate B = number of bytes left or 80.
+        push    hl
+        ex      de,hl
+        ld      hl,(p_flast)
+        or      a
+        sbc     hl,de
+        ld      (fcount),hl
+        ld      de,0x0080
+        or      a
+        sbc     hl,de
+        add     hl,de
+        jr      nc,.f_write_loop_full_rec
+        ld      a,(fcount)
+        ld      c,a
+        jp      .f_write_loop_rec
+.f_write_loop_full_rec:
+        ld      c,0x80
+.f_write_loop_rec:
+        pop     hl
         call    write_frec
 
         push    hl
@@ -261,49 +250,50 @@ cp_frec_to_user:
 ;        BC = length of data to read. Should be <= sizeofbuffer
 ; OUTPUT: void
 ; CLOBBERS: AF, BC, DE, HL
+;
+; THIS IS HOW I COMPARE 16 BIT REGISTERS
+; OR A
+; SBC HL,DE
+; ADD HL,D
 ; IF HL equals DE, Z=1,C=0
 ; IF HL is less than DE, Z=0,C=1
 ; IF HL is more than DE, Z=0,C=0
 ;===============================================================================
 f_read:
-        ld      (p_fcur),hl
+        ld      (p_fcur),hl     ; start of user buffer
         add     hl,bc
-        ld      (p_flast),hl
+        ld      (p_flast),hl    ; end of user buffer
 .f_read_lp:
         ; read a record into internal buffer
-        ld      de,frec
+        ld      de,frec         ; set dma to internal buffer
         ld      c,bdos_setdma
         call    bdos_call
-        ld      de,fcb
+        ld      de,fcb          ; read already open file
         ld      c,bdos_fread
         call    bdos_call
         ; p_flast - p_fcur => fcount
         ld      de,(p_fcur)
         ld      hl,(p_flast)
         sbc     hl,de
-        push    hl
-        ld      de,0x0080
+        push    hl              ; save difference
+        ld      de,0x0080       ; check if difference is less than 80
         or      a
         sbc     hl,de
         add     hl,de
-        jr      c,.f_read_less_than_80
-        pop     hl      ; throw away
-        ld      bc,0x0080
+        jr      c,.f_read_less_than_80 ; it is less than 80
+        pop     hl              ; throw away saved difference - we don't need it
+        ld      bc,0x0080       ; read a whole record
         jp      .f_read_record
 .f_read_less_than_80:
-        pop     bc      ; save hl into bc
-.f_read_record:
-        ld      hl,(p_fcur)
+        pop     bc              ; pop the saved difference into bc and
+.f_read_record:                 ; copy bc number of bytes from internal buffer
+        ld      hl,(p_fcur)     ; to user buffer
         call    cp_frec_to_user
-        ld      (p_fcur),hl     ; new posistion of file pointer
+        ld      (p_fcur),hl     ; new posistion of file pointer after read
         ; is this past last?
         ld      de,(p_flast)
         or      a
         sbc     hl,de
         add     hl,de
-        jr      c,.f_read_lp
+        jr      c,.f_read_lp    ; loop if HL < last address in user buffer.
         ret
-
-if debug=1
-        include 'debug.asm'
-endif

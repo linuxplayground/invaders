@@ -58,10 +58,7 @@ new_game:
         ld      (ufo_attributes),hl
         call    flush_sprite_attribute_data
 
-        ; this bit will come from disk eventually.
-        ld      hl,40
-        ld      (high_score),hl
-        
+        call    get_high_score
         ld      de,0x0000
         ld      hl,str_score
         call    print_at_loc_buf
@@ -78,3 +75,29 @@ draw_score_line:
         call    set_char_at_loc_buf
         inc     d
         djnz .display_lives_clear_lp
+
+; fetches high score from disk.  High score is 0 if file does not exist.
+get_high_score:
+        ld      b,0x00
+        ld      hl,high_score_name
+        call    f_open
+        cp      0xff            ; high score is default (0) if file does not
+        ret     z               ; exist.
+.read_file:
+        ld      hl,high_score
+        ld      bc,0x0002
+        call    f_read
+        call    f_close
+        ret
+
+; saves high score to disk.  Creates file if it does not exist. Deletes existing
+; file.
+save_high_score:
+        ld      b,0x00
+        ld      hl,high_score_name
+        call    f_make
+        ld      hl,high_score
+        ld      bc,0x0002
+        call    f_write
+        call    f_close
+        ret

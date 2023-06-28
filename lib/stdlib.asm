@@ -1,4 +1,3 @@
-        include "macros.asm"
 ;===============================================================================
 ; Jumpt to CPM Warm Boot vector
 ; INPUT: void

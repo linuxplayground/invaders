@@ -92,7 +92,10 @@ update_bullet:
         ld      a,0xd7
         ld      (bullet_attributes),a   ; disable the bullet sprite.
         ; update score
-        inc16   score
+        ld      hl,(score)
+        ld      de,0x0030
+        add     hl,de
+        ld      (score),hl
         call    update_scores
         ; decrement alien count
         dec8    alien_count

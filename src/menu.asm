@@ -1,12 +1,13 @@
 ; Display the main menu
 ; wait for fire button or escape keypress.
 menu:
-        call    update_scores
-        call    display_lives
-        call    draw_score_line
+        call    get_high_score
         ld      de,0x0000
         ld      hl,str_score
         call    print_at_loc_buf
+        call    update_scores
+        call    display_lives
+        call    draw_score_line
 
         ld      c,5
         ld      hl,str_menu_1

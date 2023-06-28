@@ -12,6 +12,8 @@ joy_map_up:             equ %10000000
 joy_map_down:           equ %01000000
 joy_map_button:         equ %00000001
 
+joy_status:             ds 2
+
 ;===============================================================================
 ; Check if a key was pressed
 ; INPUT: void
