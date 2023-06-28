@@ -133,35 +133,6 @@ f_close:
         call    bdos_call
         ret
 
-; zero out IO buffer.
-flush_frec:
-        push    bc
-        push    de
-        ld      b,0x80
-        ld      de,frec
-        xor     a
-.flush_frec_lp:
-        ld      (de),a
-        inc     de
-        djnz    .flush_frec_lp
-
-        pop     de
-        pop     bc
-        ret
-
-; load data into frec while writing to file.
-write_frec:
-        ld      de,frec
-        ld      b,0     ; c = number of bytes 80 or less than 80.
-.write_frec_lp:
-        ldir
-.write_frec_eof:         ; insert EOF
-        ; inc     de    ; data is zero terminated, replace zero with ctrl+z
-        ld      a,0x1a
-        ld      (de),a
-        ; inc     hl
-        ret
-
 ;===============================================================================
 ; Write a buffer to the already open file.  Copies data in 128 byte chunks from
 ; data pointed to by HL.  It does this via an internal 128byte buffer that's
@@ -181,25 +152,25 @@ f_write:
 .f_write_loop:
         call    flush_frec
         ; calculate B = number of bytes left or 80.
-        push    hl
-        ex      de,hl
-        ld      hl,(p_flast)
-        or      a
-        sbc     hl,de
-        ld      (fcount),hl
-        ld      de,0x0080
-        or      a
-        sbc     hl,de
-        add     hl,de
+        push    hl                      ; save HL (current ram pointer)
+        ex      de,hl                   ; DE is now current pointer into file
+        ld      hl,(p_flast)            ; HL is last pointer of file
+        or      a                       ; clear carry
+        sbc     hl,de                   ; subtract current from last
+        ld      (fcount),hl             ; save bytes remaining
+        ld      de,0x0080               ; subtract 80 from bytes remaining
+        or      a                       ; if bytes remaining is > 80 then
+        sbc     hl,de                   ; set bytes to copy into frec buffer
+        add     hl,de                   ; to 0x80
         jr      nc,.f_write_loop_full_rec
-        ld      a,(fcount)
-        ld      c,a
-        jp      .f_write_loop_rec
+        ld      a,(fcount)              ; else restore bytes remaining
+        ld      c,a                     ; and proceed to copy data into frec
+        jp      .f_write_loop_rec       ; buffer.
 .f_write_loop_full_rec:
-        ld      c,0x80
+        ld      c,0x80                  ; From before, if bytes remaining is > 80
 .f_write_loop_rec:
-        pop     hl
-        call    write_frec
+        pop     hl                      ; restore HL (current ram pointer)
+        call    cp_ram_to_frec          ; copy data from ram into frec buffer
 
         push    hl
         ; Set DMA address to start of frec
@@ -210,7 +181,7 @@ f_write:
         ld      de,fcb
         ld      c,bdos_fwrite
         call    bdos_call
-        ; compare hl with p_flast to see if we are done.
+        ; compare current ram pointer with p_flast to see if we are done.
         pop     hl
         ld      de,(p_flast)
         or      a
@@ -220,30 +191,6 @@ f_write:
 
         ret
 
-; copies data in freq to user buffer.  If an 0x1a is found, stop.
-cp_frec_to_user:
-        ex      de,hl
-        ld      hl,frec
-        inc     b
-.cp_frec_to_user_lp:
-        ld      a,(hl)
-        cp      0x1a
-        jr      z,.cp_frec_to_user_end
-        ld      (de),a
-        inc     hl
-        inc     de
-        dec     c
-        jr      nz,.cp_frec_to_user_lp
-        dec     b
-        jr      nz,.cp_frec_to_user_lp
-        xor     a
-        ex      de,hl
-        ret
-.cp_frec_to_user_end:
-        ld      a,1
-        ex      de,hl
-        ret
-
 ;===============================================================================
 ; Read DE number of bytes from a file into a file into buffer pointed to by HL
 ; INPUT: HL = pointer to data buffer to read into.
@@ -251,13 +198,6 @@ cp_frec_to_user:
 ; OUTPUT: void
 ; CLOBBERS: AF, BC, DE, HL
 ;
-; THIS IS HOW I COMPARE 16 BIT REGISTERS
-; OR A
-; SBC HL,DE
-; ADD HL,D
-; IF HL equals DE, Z=1,C=0
-; IF HL is less than DE, Z=0,C=1
-; IF HL is more than DE, Z=0,C=0
 ;===============================================================================
 f_read:
         ld      (p_fcur),hl     ; start of user buffer
@@ -288,7 +228,7 @@ f_read:
         pop     bc              ; pop the saved difference into bc and
 .f_read_record:                 ; copy bc number of bytes from internal buffer
         ld      hl,(p_fcur)     ; to user buffer
-        call    cp_frec_to_user
+        call    cp_frec_to_ram
         ld      (p_fcur),hl     ; new posistion of file pointer after read
         ; is this past last?
         ld      de,(p_flast)
@@ -296,4 +236,61 @@ f_read:
         sbc     hl,de
         add     hl,de
         jr      c,.f_read_lp    ; loop if HL < last address in user buffer.
+        ret
+
+;===============================================================================
+; INTERNAL HELPER FUNCTIONS
+;===============================================================================
+
+; zero out internal IO buffer. (frec)
+flush_frec:
+        push    bc
+        push    de
+        ld      b,0x80
+        ld      de,frec
+        xor     a
+.flush_frec_lp:
+        ld      (de),a
+        inc     de
+        djnz    .flush_frec_lp
+
+        pop     de
+        pop     bc
+        ret
+
+; when writing a file, we want ot copy data from ram into the internal freq
+; buffer so we can either copy all 80 bytes or just the number of remaining
+; bytes.  We add an EOF every time but it's overwritten by the next go round.
+; unless this is the last goround.
+cp_ram_to_frec:
+        ld      de,frec
+        ld      b,0     ; c = number of bytes 80 or less than 80.
+        ldir
+        ld      a,0x1a  ; insert EOF
+        ld      (de),a
+        ret
+
+; for read operations we need to copy data from the file into the internal buffer
+; copies data in freq to user buffer.  If an 0x1a is found, stop.
+cp_frec_to_ram:
+        ex      de,hl
+        ld      hl,frec
+        inc     b
+.cp_frec_to_ram_lp:
+        ld      a,(hl)
+        cp      0x1a
+        jr      z,.cp_frec_to_ram_end
+        ld      (de),a
+        inc     hl
+        inc     de
+        dec     c
+        jr      nz,.cp_frec_to_ram_lp
+        dec     b
+        jr      nz,.cp_frec_to_ram_lp
+        xor     a
+        ex      de,hl
+        ret
+.cp_frec_to_ram_end:
+        ld      a,1
+        ex      de,hl
         ret
