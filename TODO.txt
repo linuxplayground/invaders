@@ -1,10 +1,8 @@
 * assign colours to invaders
 * explode aliens on hit
-* deth explosion
+* death explosion
 * bombs
 * loose life on bomb hit
 * restart after life lost
 * display remaining lives
 * UFO
-* back to menu on game over
-* new level on level complete
