@@ -1,4 +1,4 @@
-; player input and management. updates the sprite attribute data not the vdp
+; player input and management. updates the sprite attribute data not the buffer
 player_key_input:
         call    get_char
         cp      0x1b
@@ -86,15 +86,32 @@ update_bullet:
         call    alien_at_tile_xy
         or      a
         ret     z                       ; no aliens or shields under bullet
+        push    af                      ; save alien at tile_xy
         xor     a
         ld      (hl),a                  ; set the alien pattern to a zero
         ld      (bullet_active),a       ; disable bullet processing.
         ld      a,0xd7
         ld      (bullet_attributes),a   ; disable the bullet sprite.
-        ; update score
+        call    tms_wait                ; we need to make sure the alien that
+        call    draw_alien_grid         ; we hit is removed from the screen
+        call    tms_flush_buffer        ; because the last alien is left behind
+        ; update score                  ; otherwise.
+        pop     af                      ; restore alien at tile_xy
+        cp      0x68                    ; is it less <= to bottom rows?
+        jr      nc,.not_bottom_rows
+        ld      a,5
+        jp      .update_score
+.not_bottom_rows:
+        cp      0x70                    ; is it <= middle rows?
+        jr      nc,.not_middle_rows
+        ld      a,25
+        jp      .update_score
+.not_middle_rows:
+        ld      a,45
+        ; fall through
+.update_score:
         ld      hl,(score)
-        ld      de,0x0030
-        add     hl,de
+        addhla
         ld      (score),hl
         call    update_scores
         ; decrement alien count

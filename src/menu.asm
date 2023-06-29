@@ -1,6 +1,7 @@
 ; Display the main menu
 ; wait for fire button or escape keypress.
 menu:
+        call    tms_clear_screen
         call    get_high_score
         ld      de,0x0000
         ld      hl,str_score
@@ -55,7 +56,15 @@ menu:
         ld      hl,0x9f78
         ld      (player_attributes),hl
 
-
+        ld      a,(game_over_flag)
+        or      a
+        jr      z,.flush
+        ld      c,13
+        ld      hl,str_menu_6
+        call    center_text_in_buf_row
+        xor     a
+        ld      (game_over_flag),a
+.flush:
         call    tms_wait
         call    flush_sprite_attribute_data
         call    tms_flush_buffer
@@ -76,5 +85,5 @@ menu:
         xor     a
         ret        
 .menu_quit:
-        ld      a,0xff
+        ld      a,0x01
         ret

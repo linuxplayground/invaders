@@ -4,8 +4,9 @@
         ld      sp,.stack
 
         call    init
-main:
+setup_game:
         call    setup
+main:
         call    menu
         or      a
         jp      nz,exit_game
@@ -17,25 +18,30 @@ main:
         ld      hl,0xd0ff
         ld      (ufo_attributes),hl   ; reset vertical position of player after menu
         call    flush_sprite_attribute_data
-
         call    new_game
+level:
+        call    new_level
         call    draw_shields
         call    draw_alien_grid
         call    tms_wait
         call    tms_flush_buffer
         call    blink_player
-
 loop:
         inc8    ticks
         ld      a,(alien_count) ; check if we have won
         or      a
-        jr      z,exit_game
+        jp      nz,.not_new_level
+        ld      a,(game_level)
+        inc     a
+        ld      (game_level),a
+        jp      level
+.not_new_level:
         call    is_key_pressed  ; check user input
         or      a
         jr      z,joy_input
         call    player_key_input
         or      a
-        jr      nz,exit_game
+        jp      nz,main
 joy_input:                      ; check joystick inputs
         call    player_joy_input
         call    update_bullet   ; updates the bullet if one is active
@@ -55,7 +61,7 @@ joy_input:                      ; check joystick inputs
         jr      z,reset_ticks   ; only drop aliens if they reach edge
         call    drop_aliens
         or      a               ; aliens have reached row 22 - end game
-        jp      nz,exit_game
+        jp      nz,game_over
 reset_ticks:
         xor     a
         ld      (ticks),a       ; reset ticks.
@@ -87,11 +93,20 @@ exit_game:
         call    ay_all_off
         call    save_high_score
         call    cpm_terminate
+game_over:
+        ld      b,30
+        call    tms_delay
+        ld      a,1
+        ld      (game_over_flag),a
+        jp      setup_game
 
-
-; includes
+; includes platform
         include 'platform.asm'
+; include standard libraries
+        include "stdlib.asm"
+        include "stdio.asm"
         include 'tms.asm'
+; include game libraries
         include 'inv_patterns.asm'
         include 'setup.asm'
         include 'alien.asm'
@@ -100,8 +115,6 @@ exit_game:
         include 'player.asm'
         include 'strings.asm'
         include 'menu.asm'
-        include "stdlib.asm"
-        include "stdio.asm"
 
 ; global variables
 ticks:          db 0    ; current frame count
@@ -127,12 +140,15 @@ alien_march_counter: db 4; marching tempo (higher numbers = slower)
 alien_march_index: db 0 ; index into alien_note
 lives:          db 3    ; 3 lives.  (when lives reaches zero we are dead.)
 extra_life_given: db 0  ; keep track of if extra life has een given
+game_level:     db 0    ; current game level.
+game_over_flag: db 0    ; this is how we know to show the GAME OVER text.
 str_score:      db "SCORE<     > HIGH<     >",0
-str_menu_1:     db "INVADERS    V1.0",0
+str_menu_1:     db "INVADERS - V1.0",0
 str_menu_2:     db "BY PRODUCTION-DAVE",0
 str_menu_3:     db "SHOOT STARTS",0
 str_menu_4:     db "ESCAPE QUITS",0
 str_menu_5:     db " 5 25 45 ?? P1",0
+str_menu_6:     db "GAME OVER",0
 
 high_score_name: db "INVADERSDAT",0
 score:          ds 2    ; two bytes for the score (16 bit)

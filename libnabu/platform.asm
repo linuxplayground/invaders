@@ -14,17 +14,6 @@ kbd_buffer:             ds 0xff
 
 
 ;===============================================================================
-; Blocking wait for keypress
-; INPUT: void
-; OUTPUT: A=0 no key press, A=1 key press detected
-; CLOBBERS: HL on Nabu
-;===============================================================================
-wait_for_key:
-        call    is_key_pressed
-        or      a
-        jr      nz,wait_for_key
-        ret
-;===============================================================================
 ; CONSTANTS
 ;===============================================================================
 io_control:             equ 0x00
@@ -53,6 +42,18 @@ IO_PORTB:               equ 0x0f
 
 INT_MASK_KEYBOARD:      equ 0x20
 INT_MASK_VDP:           equ 0x10
+
+;===============================================================================
+; Blocking wait for keypress
+; INPUT: void
+; OUTPUT: A=0 no key press, A=1 key press detected
+; CLOBBERS: HL on Nabu
+;===============================================================================
+wait_for_key:
+        call    is_key_pressed
+        or      a
+        jr      nz,wait_for_key
+        ret
 
 ;===============================================================================
 ; Interrupt Service Routine for the Nabu Keyboard and Joystick handling.

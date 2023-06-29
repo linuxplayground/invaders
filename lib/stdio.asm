@@ -51,32 +51,6 @@ puts:
 ;===============================================================================
 
 ;===============================================================================
-; Sets the current user area and the disk in the FCB byte 0
-; INPUT: B  = uuuudddd uuuu=user area; dddd=disk
-; OUTPUT: void
-; CLOBBERS: BC
-;===============================================================================
-f_setdisk_and_user:
-        push    hl
-        push    bc
-        ld      c,bdos_gsuid
-        ld      a,b
-
-        rra
-        rra
-        rra
-        rra
-
-        ld      e,a             ; extract user area from B
-        call    bdos_call
-        pop     bc              ; restore disk and user data in B
-        ld      a,b
-        and     0x0f
-        ld      (fcb),a         ; set first byte of fcb to disk provided in B
-        pop     hl
-        ret
-
-;===============================================================================
 ; Create a new file, set the CR bit of the FCB to zero so that read or writes
 ; continue from the beginning of the file.  Deletes any existing file of the
 ; same name.  Changes to specified user area and sets the disk number provided
@@ -197,7 +171,6 @@ f_write:
 ;        BC = length of data to read. Should be <= sizeofbuffer
 ; OUTPUT: void
 ; CLOBBERS: AF, BC, DE, HL
-;
 ;===============================================================================
 f_read:
         ld      (p_fcur),hl     ; start of user buffer
@@ -241,6 +214,28 @@ f_read:
 ;===============================================================================
 ; INTERNAL HELPER FUNCTIONS
 ;===============================================================================
+
+; Sets the current user area and the disk in the FCB byte 0
+; B  = uuuudddd uuuu=user area; dddd=disk
+f_setdisk_and_user:
+        push    hl
+        push    bc
+        ld      c,bdos_gsuid
+        ld      a,b
+
+        rra
+        rra
+        rra
+        rra
+
+        ld      e,a             ; extract user area from B
+        call    bdos_call
+        pop     bc              ; restore disk and user data in B
+        ld      a,b
+        and     0x0f
+        ld      (fcb),a         ; set first byte of fcb to disk provided in B
+        pop     hl
+        ret
 
 ; zero out internal IO buffer. (frec)
 flush_frec:

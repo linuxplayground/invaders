@@ -201,6 +201,18 @@ tms_set_vram_loop:
         ret
 
 ;===============================================================================
+; Load color table
+; INPUT: HL = Address of first byte of color data data, BC = Number of bytes in 
+; color table.
+; OUTPUT: void
+; CLOBBERS: AF, DE
+;===============================================================================
+tms_load_color_table:
+        ld      de,tms_colorTable
+        call    tms_write_slow
+        ret
+
+;===============================================================================
 ; Load pattern table.
 ; INPUT: HL = Address of first byte of pattern data, BC = Number of bytes in 
 ; pattern table.
@@ -231,13 +243,10 @@ tms_load_sprite_pattern_table:
 ; CLOBBERS: AF, BC, DE, HL
 ; BUGGY - NEEDS INVESTIGATION.  USE tms_clear_buffer INSTEAD
 ;===============================================================================
-; tms_clear_screen:
-;         ld      hl,tms_nameTable
-;         call    tms_set_write_address
-
-;         ld      de,tms_nameTableLen
-;         ld      l,0x00
-;         jp      tms_set_vram_loop_start
+tms_clear_screen:
+        call    tms_clear_buffer
+        call    tms_wait
+        jp      tms_flush_buffer
 
 ;===============================================================================
 ; Writes all Zeros to tms_buffer

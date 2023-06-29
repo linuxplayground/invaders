@@ -170,3 +170,38 @@ inv_patterns_len:     equ $-inv_patterns
 INVADER1_COLOR: db 0x6e
 INVADER2_COLOR: db 0x5e
 INVADER3_COLOR: db 0x3e
+
+color_table_data:
+       db     0xe1   ; 00-07
+       db     0xe1   ; 08-0f
+       db     0xe1   ; 10-17
+       db     0xe1   ; 18-1f
+       db     0xe1   ; 20-27
+       db     0xe1   ; 28-2f
+       db     0xe1   ; 30-37
+       db     0xe1   ; 38-3f
+       db     0xe1   ; 40-47
+       db     0xe1   ; 48-4f
+       db     0xe1   ; 50-57
+       db     0xe1   ; 58-5f
+       db     0x61   ; 60-67
+       db     0x51   ; 68-6f
+       db     0x31   ; 70-77
+       db     0xe1   ; 78-7f
+       db     0xe1   ; 80-87
+       db     0xe1   ; 88-8f
+       db     0xe1   ; 90-97
+       db     0xe1   ; 98-9f
+       db     0xe1   ; a0-a7
+       db     0xe1   ; a8-af
+       db     0xe1   ; b0-b7
+       db     0xe1   ; b8-bf
+       db     0xe1   ; c0-c7
+       db     0xe1   ; c8-cf
+       db     0xe1   ; d0-d7
+       db     0xe1   ; d8-df
+       db     0xe1   ; e0-e7
+       db     0xe1   ; e8-ef
+       db     0xe1   ; f0-f7
+       db     0xe1   ; f8-ff
+color_table_data_len: equ $-color_table_data

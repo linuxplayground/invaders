@@ -19,27 +19,56 @@ setup:
         ld      c,tms_dark_yellow
         call    tms_set_backdrop_color
         
-        ld      c,tms_gray<<4|tms_black
-        call    tms_set_all_colors
+        ld      bc,color_table_data_len
+        ld      hl,color_table_data
+        call    tms_load_color_table
+
         ret
 
 ; Set up new game  This is needed so we can impliment the conept of levels
 ; and play again etc.  First we copy the aliens array out of memory into
 ; reserved space allocated for this purpose.
 new_game:
+        ld      a,2
+        ld      (alien_top_y),a
+        ld      a,10
+        ld      (alien_bottom_y),a
+        xor     a
+        ld      (score),a
+        call    get_high_score
+        ld      de,0x0000
+        ld      hl,str_score
+        call    print_at_loc_buf
+        call    update_scores
+        call    display_lives
+        call    draw_score_line
+        ret
+
+new_level:
         ; copy aliens_default into aliens for this game.
         ld      bc,aliens_len
         ld      hl,aliens_default
         ld      de,aliens
         ldir
-
-        ; reset standard game_vars
-        ld      a,55
-        ld      (alien_count),a
         ld      a,2
         ld      (alien_top_y),a
         ld      a,10
         ld      (alien_bottom_y),a
+
+        ld      a,(game_level)
+        or      a
+        jr      z,.new_level_set_vars
+        ld      b,a
+.new_level_shift_aliens_lp:
+        push    bc
+        call    drop_aliens
+        pop     bc
+        djnz    .new_level_shift_aliens_lp
+.new_level_set_vars:
+        ; reset standard game_vars
+        ld      a,55
+        ld      (alien_count),a
+
         ld      a,8
         ld      (game_speed),a
         ld      a,1
@@ -51,20 +80,13 @@ new_game:
         ld      (bullet_active),a
         ld      (bomb_active),a
         ld      (ufo_active),a
-        ld      (score),a
 
         ; disable UFO sprite that was shown in the menu.
         ld      hl,0xffd7
         ld      (ufo_attributes),hl
+        ld      a,120
+        ld      (player_attributes+1),a
         call    flush_sprite_attribute_data
-
-        call    get_high_score
-        ld      de,0x0000
-        ld      hl,str_score
-        call    print_at_loc_buf
-        call    update_scores
-        call    display_lives
-        call    draw_score_line
         ret
 
 draw_score_line:
