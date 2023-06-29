@@ -233,6 +233,7 @@ f_setdisk_and_user:
         pop     bc              ; restore disk and user data in B
         ld      a,b
         and     0x0f
+        inc     a
         ld      (fcb),a         ; set first byte of fcb to disk provided in B
         pop     hl
         ret

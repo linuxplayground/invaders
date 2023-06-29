@@ -1,8 +1,14 @@
 ; Display the main menu
 ; wait for fire button or escape keypress.
 menu:
-        call    tms_clear_screen
+        ld      hl,str_loading
+        ld      c,22
+        call    center_text_in_buf_row
+        call    tms_wait
+        call    tms_flush_buffer
         call    get_high_score
+        call    tms_clear_screen
+
         ld      de,0x0000
         ld      hl,str_score
         call    print_at_loc_buf

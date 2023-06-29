@@ -35,7 +35,6 @@ new_game:
         ld      (alien_bottom_y),a
         xor     a
         ld      (score),a
-        call    get_high_score
         ld      de,0x0000
         ld      hl,str_score
         call    print_at_loc_buf
@@ -100,7 +99,8 @@ draw_score_line:
 
 ; fetches high score from disk.  High score is 0 if file does not exist.
 get_high_score:
-        ld      b,0x00
+        ld      a,(0x04)        ; user / disk
+        ld      b,a
         ld      hl,high_score_name
         call    f_open
         cp      0xff            ; high score is default (0) if file does not
@@ -115,7 +115,8 @@ get_high_score:
 ; saves high score to disk.  Creates file if it does not exist. Deletes existing
 ; file.
 save_high_score:
-        ld      b,0x00
+        ld      a,(0x04)        ; user / disk
+        ld      b,a
         ld      hl,high_score_name
         call    f_make
         ld      hl,high_score

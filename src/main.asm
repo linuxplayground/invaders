@@ -91,7 +91,14 @@ exit_loop:
         jp      loop
 exit_game:
         call    ay_all_off
+
+        ld      hl,str_saving
+        ld      c,22
+        call    center_text_in_buf_row
+        call    tms_wait
+        call    tms_flush_buffer
         call    save_high_score
+
         call    cpm_terminate
 game_over:
         ld      b,30
@@ -149,6 +156,8 @@ str_menu_3:     db "SHOOT STARTS",0
 str_menu_4:     db "ESCAPE QUITS",0
 str_menu_5:     db " 5 25 45 ?? P1",0
 str_menu_6:     db "GAME OVER",0
+str_loading:    db "LOADING ...",0
+str_saving:     db "SAVING ...",0
 
 high_score_name: db "INVADERSDAT",0
 score:          ds 2    ; two bytes for the score (16 bit)
